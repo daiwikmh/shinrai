@@ -1,21 +1,18 @@
-import { Button } from "@/components/ui/button";
-import { getQueryClient, trpc } from "@/trpc/server";
-import { Client } from "./client";
-import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
-import { Suspense } from "react";
 
-const Page = async() => {
-  const queryClinet = getQueryClient();
-  void queryClinet.prefetchQuery(trpc.getUsers.queryOptions())
+import { LogoutButton } from "@/components/logout";
+import { requireAuth } from "@/lib/auth-utils";
+import { caller } from "@/trpc/server";
+
+const Page = async () => {
+  await requireAuth();
+  const data = await caller.getUsers();
   return (
-    <div className="text-red-700 font-bold">
-      <h1>Hello, World!</h1>
-      <HydrationBoundary state={dehydrate(queryClinet)}>
-        <Suspense fallback={<p>Loading...</p>}>
-          <Client />
-        </Suspense>
-      </HydrationBoundary>
-      <Button variant="outline">Click me</Button>
+    <div className="min-h-screen flex-col gap-6 min-w-screen flex items-center justify-center">
+      protected server componenet
+      |<div>
+      {JSON.stringify(data, null ,2)}
+      </div>
+      <LogoutButton/>
     </div>
   );
 };
