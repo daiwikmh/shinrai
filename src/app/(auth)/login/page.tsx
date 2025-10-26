@@ -1,14 +1,11 @@
-import { LoginForm } from "@/components/login-form";
+import { LoginForm } from "@/features/auth/components/login-form";
 import { requireNoAuth } from "@/lib/auth-utils";
+
 
 const Page = async () => {
   await requireNoAuth();
   
-  return (
-    <div>
-      <LoginForm/>
-    </div>
-  );
+  return <LoginForm/>
 };
 
 export default Page;

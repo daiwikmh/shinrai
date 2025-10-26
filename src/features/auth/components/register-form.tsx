@@ -72,7 +72,7 @@ export function RegisterForm() {
   const isPending = form.formState.isSubmitting;
   
   return (
-    <div className="flex flex-col gap-6 min-h-svh min-w-svw justify-center items-center">
+    <div className="flex flex-col gap-6">
       <Card>
         <CardHeader className="text-center">
           <CardTitle>
@@ -88,11 +88,11 @@ export function RegisterForm() {
               <div className="grid gap-6">
                 <div className="flex flex-col gap-4">
                   <Button variant={"outline"} className="w-full" type="button" disabled={isPending}>
-                    <Image alt="Github Logo" src={"/github.png"} width={30} height={30}/>
+                    <Image alt="Github Logo" src={"/logo/github.png"} width={30} height={30}/>
                     Continue with Github
                   </Button>
                   <Button variant={"outline"} className="w-full" type="button" disabled={isPending}>
-                    <Image alt="Google Logo" src={"/google.png"} width={30} height={30}/>
+                    <Image alt="Google Logo" src={"/logo/google.png"} width={30} height={30}/>
                     Continue with Google
                   </Button>
                 </div>
@@ -136,7 +136,7 @@ export function RegisterForm() {
                       </FormItem>
                     )}
                   />
-                  <Button type="submit" className="w-full" disabled={isPending}>
+                  <Button type="submit" variant={"secondary"} className="w-full" disabled={isPending}>
                     {isPending ? "Signing up..." : "Sign Up"}
                   </Button>
                 </div>

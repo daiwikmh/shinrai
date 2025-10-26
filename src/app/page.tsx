@@ -1,5 +1,5 @@
 
-import { LogoutButton } from "@/components/logout";
+import { LogoutButton } from "@/features/auth/components/logout";
 import { requireAuth } from "@/lib/auth-utils";
 import { caller } from "@/trpc/server";
 
