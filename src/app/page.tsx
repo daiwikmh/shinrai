@@ -20,11 +20,25 @@ const Page = () => {
       toast.error("Failed to create workflow");
     }
   }))
+  const testAi = useMutation(trpc.testAI.mutationOptions({
+    onSuccess: () => {
+      toast.info("AI Job queued");
+
+    },
+    onError: () => {
+      toast.error("AI Job not queued");
+    }
+  }))
   return (
     <div className="min-h-screen flex-col gap-6 min-w-screen flex items-center justify-center">
       protected server componenet
       |<div>
         {JSON.stringify(workflows)}
+      </div>
+      <div>
+        <Button disabled={testAi.isPending} onClick={()=> testAi.mutate()}>
+          Test Google AI
+        </Button>
       </div>
       <Button disabled={createWorkflow.isPending} onClick={() => createWorkflow.mutate()}>
         Create Workflow

@@ -2,7 +2,15 @@
 import prisma from "@/lib/db";
 import {  createTRPCRouter, protectedProcedure } from '../init';
 import { inngest } from "@/inngest/client";
+
+
 export const appRouter = createTRPCRouter({
+  testAI: protectedProcedure.mutation(async () =>{
+    await inngest.send({
+      name:"execute/ai"
+    })
+    return { success:true, message: "AI Job queued."};
+  }),
   getUsers: protectedProcedure.query(({ctx}) => {
       return prisma.user.findMany({
         where: {
@@ -10,7 +18,7 @@ export const appRouter = createTRPCRouter({
         },
       });
     }),
-  getWorkflows: protectedProcedure.query(({ctx}) => {
+  getWorkflows: protectedProcedure.query(() => {
       return prisma.workflow.findMany();
     }),
   createWorkflow: protectedProcedure.mutation(async ({ctx}) => {
