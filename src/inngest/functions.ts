@@ -17,13 +17,23 @@ export const execute = inngest.createFunction(
      generateText,{
        model: google("gemini-2.5-flash-lite"),
        system:"You are a helpful assistant.",
-       prompt:"Generate a short story about a cat and a dog."
+       prompt:"Generate a short story about a cat and a dog.",
+       experimental_telemetry: {
+           isEnabled: true,
+           recordInputs: true,
+           recordOutputs: true,
+         },
      })
    const { steps:openRouterSteps } = await step.ai.wrap("openrouter-generate-text",
      generateText,{
        model: openrouter("deepseek/deepseek-chat-v3.1:free"),
        system:"You are a helpful assistant.",
-       prompt:"Generate a short story about a cat and a dog."
+       prompt:"Generate a short story about a cat and a dog.",
+       experimental_telemetry: {
+           isEnabled: true,
+           recordInputs: true,
+           recordOutputs: true,
+         },
      })
     return {
       geminiSteps,

@@ -2,10 +2,12 @@
 import prisma from "@/lib/db";
 import {  createTRPCRouter, protectedProcedure } from '../init';
 import { inngest } from "@/inngest/client";
+// import { logger } from "@sentry/nextjs";
 
 
 export const appRouter = createTRPCRouter({
   testAI: protectedProcedure.mutation(async () =>{
+    // logger.info("testAI mutation called")
     await inngest.send({
       name:"execute/ai"
     })
