@@ -94,12 +94,12 @@
   --chart-3: rgb(37, 99, 239);
   --chart-4: rgb(26, 78, 218);
   --chart-5: rgb(31, 63, 173);
-  --sidebar: rgb(250, 250, 250);
+  --sidebar: rgb(240, 253, 250);
   --sidebar-foreground: rgb(10, 10, 10);
   --sidebar-primary: rgb(23, 23, 23);
   --sidebar-primary-foreground: rgb(250, 250, 250);
-  --sidebar-accent: rgb(245, 245, 245);
-  --sidebar-accent-foreground: rgb(23, 23, 23);
+  --sidebar-accent: rgb(23, 23, 23);
+  --sidebar-accent-foreground: rgb(70, 236, 213);
   --sidebar-border: rgb(229, 229, 229);
   --sidebar-ring: rgb(161, 161, 161);
   --font-sans: Share Tech, ui-sans-serif, sans-serif, system-ui;
@@ -155,7 +155,7 @@
   --sidebar-foreground: oklch(0.9850 0 0);
   --sidebar-primary: oklch(0.4880 0.2430 264.3760);
   --sidebar-primary-foreground: oklch(0.9850 0 0);
-  --sidebar-accent: oklch(0.2690 0 0);
+  --sidebar-accent: oklch(0.205 0 0);
   --sidebar-accent-foreground: oklch(0.9850 0 0);
   --sidebar-border: oklch(0.2750 0 0);
   --sidebar-ring: oklch(0.4390 0 0);
