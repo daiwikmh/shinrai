@@ -102,7 +102,7 @@ const AppSidebar = () => {
            tooltip={"Billing Portal"}
            className="gap-x-4 h-10 px-4"
            onClick={() => {}}>
-            <StarIcon className="h-4 w-4"/>
+            <CreditCardIcon className="h-4 w-4"/>
             <span>Billing Portal</span>
           </SidebarMenuButton>
         </SidebarMenuItem>
