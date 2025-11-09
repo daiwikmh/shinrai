@@ -43,6 +43,11 @@ const menuItems = [
         icon: HistoryIcon,
         href: "/executions"
       },
+      {
+        title: "onchain",
+        icon: HistoryIcon,
+        href: "/onchain"
+      },
     ]
   }
 ];
