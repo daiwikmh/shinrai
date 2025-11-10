@@ -2,6 +2,20 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { TRPCReactProvider } from "@/trpc/client";
 import { Toaster } from "@/components/ui/sonner";
+import { Roboto_Mono } from "next/font/google";
+import localFont from "next/font/local";
+
+const robotoMono = Roboto_Mono({
+  subsets: ["latin"],
+  variable: "--font-roboto-mono",
+  display: "swap",
+});
+
+const rebels = localFont({
+  src: "../../public/fonts/Rebels-Fett.woff2",
+  variable: "--font-rebels",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Shinrai node",
@@ -14,9 +28,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="dark">
       <body
-        className="font-sans antialiased"
+        className={`font-mono antialiased ${robotoMono.variable} ${rebels.variable}`}
       >
         <TRPCReactProvider>
         {children}
