@@ -57,6 +57,11 @@ const menuItems = [
     icon: WalletIcon,
     href: "/onchain"
   },
+  {
+    title: "canvas",
+    icon: WalletIcon,
+    href: "/canvas"
+  },
 ];
 
 function shortenAddress(addr: string) {
