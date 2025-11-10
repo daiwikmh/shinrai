@@ -7,8 +7,15 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { PlayCircle } from "lucide-react";
 
-export function TopBar({ onAddNode }: { onAddNode: (type: string) => void }) {
+export function TopBar({
+  onAddNode,
+  onAddRootNode
+}: {
+  onAddNode: (type: string) => void;
+  onAddRootNode: () => void;
+}) {
   const [nodeType, setNodeType] = useState<string>("agent");
 
   return (
@@ -28,10 +35,17 @@ export function TopBar({ onAddNode }: { onAddNode: (type: string) => void }) {
             <SelectItem value="test">Test Node</SelectItem>
             <SelectItem value="telegram_polling">Telegram Polling</SelectItem>
             <SelectItem value="webhook">Webhook</SelectItem>
-                     
           </SelectContent>
         </Select>
         <Button onClick={() => onAddNode(nodeType)}>Add Node</Button>
+        <Button
+          onClick={onAddRootNode}
+          variant="default"
+          className="gap-2"
+        >
+          <PlayCircle className="w-4 h-4" />
+          Add Node as Root
+        </Button>
       </div>
     </div>
   );

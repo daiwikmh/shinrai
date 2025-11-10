@@ -22,10 +22,10 @@ import { TriggerNode } from "./nodes/TriggerNode";
 import { StartNode } from "./nodes/StartNode";
 import { OutputNode } from "./nodes/OutputNode";
 import { TestNode } from "./nodes/TestNode";
+import { RootNode } from "./nodes/RootNode";
 
 import { TopBar } from "./topbar/TopBar";
 import { WorkflowSidebar } from "./sidebar/WorkflowSidebar";
-import { SolanaProvider } from "@/providers/solana-provider";
 
 const nodeTypes = {
   agent: AgentNode,
@@ -35,6 +35,7 @@ const nodeTypes = {
   start: StartNode,
   output: OutputNode,
   test: TestNode,
+  root: RootNode,
 };
 
 function CanvasFlow() {
@@ -59,6 +60,19 @@ function CanvasFlow() {
       },
     };
     setNodes((nds) => [...nds, newNode]);
+  };
+
+  const handleAddRootNode = () => {
+    const newRootNode = {
+      id: `root-${Date.now()}`,
+      type: "root",
+      position: { x: 100, y: 100 }, // Fixed position for root node
+      data: {
+        label: "Root Node",
+        status: "idle" as const,
+      },
+    };
+    setNodes((nds) => [...nds, newRootNode]);
   };
 
   const handleRunWorkflow = async () => {
@@ -101,13 +115,8 @@ function CanvasFlow() {
 
   return (
     <div className="flex h-screen w-full">
-      <WorkflowSidebar
-        isWorkflowRunning={isWorkflowRunning}
-        workflowResults={workflowResults}
-        onRunWorkflow={handleRunWorkflow}
-      />
       <div className="flex-1 flex flex-col">
-        <TopBar onAddNode={handleAddNode} />
+        <TopBar onAddNode={handleAddNode} onAddRootNode={handleAddRootNode} />
         <div className="flex-1">
           <ReactFlow
             nodes={nodes}
@@ -124,16 +133,19 @@ function CanvasFlow() {
           </ReactFlow>
         </div>
       </div>
+      <WorkflowSidebar
+        isWorkflowRunning={isWorkflowRunning}
+        workflowResults={workflowResults}
+        onRunWorkflow={handleRunWorkflow}
+      />
     </div>
   );
 }
 
 export default function CanvasPage() {
   return (
-    <SolanaProvider>
-      <ReactFlowProvider>
-        <CanvasFlow />
-      </ReactFlowProvider>
-    </SolanaProvider>
+    <ReactFlowProvider>
+      <CanvasFlow />
+    </ReactFlowProvider>
   );
 }

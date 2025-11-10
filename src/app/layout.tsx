@@ -4,6 +4,7 @@ import { TRPCReactProvider } from "@/trpc/client";
 import { Toaster } from "@/components/ui/sonner";
 import { Roboto_Mono } from "next/font/google";
 import localFont from "next/font/local";
+import { SolanaProvider } from "@/components/solana-provider";
 
 const robotoMono = Roboto_Mono({
   subsets: ["latin"],
@@ -32,10 +33,12 @@ export default function RootLayout({
       <body
         className={`font-mono antialiased ${robotoMono.variable} ${rebels.variable}`}
       >
-        <TRPCReactProvider>
-        {children}
-        <Toaster/>
-        </TRPCReactProvider>
+        <SolanaProvider>
+          <TRPCReactProvider>
+            {children}
+            <Toaster/>
+          </TRPCReactProvider>
+        </SolanaProvider>
       </body>
     </html>
   );

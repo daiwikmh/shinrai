@@ -35,6 +35,13 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { authClient } from "@/lib/auth-client";
+import { useSolana } from "@/components/solana-provider";
+import {
+  useConnect,
+  useDisconnect,
+  type UiWallet
+} from "@wallet-standard/react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const menuItems = [
   {
@@ -69,56 +76,86 @@ function shortenAddress(addr: string) {
   return addr.slice(0, 6) + "..." + addr.slice(-4);
 }
 
+// Wallet Icon Component
+const WalletIconComponent = ({ wallet, className }: { wallet: UiWallet; className?: string; }) => {
+  return (
+    <Avatar className={className}>
+      {wallet.icon && (
+        <AvatarImage src={wallet.icon} alt={`${wallet.name} icon`} />
+      )}
+      <AvatarFallback>{wallet.name.slice(0, 2).toUpperCase()}</AvatarFallback>
+    </Avatar>
+  );
+};
+
+// Wallet Menu Item Component
+const WalletMenuItem = ({ wallet, onConnect }: { wallet: UiWallet; onConnect: () => void; }) => {
+  const { setWalletAndAccount } = useSolana();
+  const [isConnecting, connect] = useConnect(wallet);
+
+  const handleConnect = async () => {
+    if (isConnecting) return;
+
+    try {
+      const accounts = await connect();
+
+      if (accounts && accounts.length > 0) {
+        const account = accounts[0];
+        setWalletAndAccount(wallet, account);
+        onConnect();
+      }
+    } catch (err) {
+      console.error(`Failed to connect ${wallet.name}:`, err);
+    }
+  };
+
+  return (
+    <button
+      className="flex w-full items-center justify-between px-4 py-2 text-sm outline-none hover:bg-accent focus:bg-accent disabled:pointer-events-none disabled:opacity-50"
+      onClick={handleConnect}
+      disabled={isConnecting}
+    >
+      <div className="flex items-center gap-2">
+        <WalletIconComponent wallet={wallet} className="h-6 w-6" />
+        <span className="font-medium">{wallet.name}</span>
+      </div>
+      {isConnecting && <span className="text-xs text-muted-foreground">Connecting...</span>}
+    </button>
+  );
+};
+
+// Disconnect Button Component
+const DisconnectButton = ({ wallet, onDisconnect }: { wallet: UiWallet; onDisconnect: () => void; }) => {
+  const { setWalletAndAccount } = useSolana();
+  const [isDisconnecting, disconnect] = useDisconnect(wallet);
+
+  const handleDisconnect = async () => {
+    try {
+      await disconnect();
+      setWalletAndAccount(null, null);
+      onDisconnect();
+    } catch (err) {
+      console.error("Failed to disconnect wallet:", err);
+    }
+  };
+
+  return (
+    <button
+      className="flex items-center px-4 py-2 text-sm hover:bg-accent text-destructive w-full"
+      onClick={handleDisconnect}
+      disabled={isDisconnecting}
+    >
+      <LogOutIcon className="mr-2 h-4 w-4" />
+      {isDisconnecting ? "Disconnecting..." : "Disconnect Wallet"}
+    </button>
+  );
+};
+
 const AppSidebar = () => {
   const router = useRouter();
   const pathname = usePathname();
-  const [walletAddress, setWalletAddress] = React.useState<string>("");
-  const [isConnecting, setIsConnecting] = React.useState(false);
   const { data: session } = authClient.useSession();
-
-  // Check if Phantom is already connected
-  React.useEffect(() => {
-    const checkPhantomConnection = async () => {
-      if (typeof window !== "undefined" && window.phantom?.solana) {
-        try {
-          const response = await window.phantom.solana.connect({ onlyIfTrusted: true });
-          setWalletAddress(response.publicKey.toString());
-        } catch {
-          // Not connected yet
-        }
-      }
-    };
-    checkPhantomConnection();
-  }, []);
-
-  const connectPhantom = async () => {
-    setIsConnecting(true);
-    try {
-      if (!window.phantom?.solana) {
-        window.open("https://phantom.app/", "_blank");
-        throw new Error("Phantom wallet not installed");
-      }
-
-      const phantom = window.phantom.solana;
-      const response = await phantom.connect();
-      setWalletAddress(response.publicKey.toString());
-    } catch (error) {
-      console.error("Failed to connect to Phantom:", error);
-    } finally {
-      setIsConnecting(false);
-    }
-  };
-
-  const disconnectPhantom = async () => {
-    try {
-      if (window.phantom?.solana) {
-        await window.phantom.solana.disconnect();
-        setWalletAddress("");
-      }
-    } catch (error) {
-      console.error("Failed to disconnect from Phantom:", error);
-    }
-  };
+  const { wallets, selectedWallet, selectedAccount, isConnected } = useSolana();
 
   return (
     <Sidebar>
@@ -209,28 +246,50 @@ const AppSidebar = () => {
                         Settings
                       </button>
                       <div className="border-t border-border my-1" />
-                      {!walletAddress ? (
-                        <button
-                          onClick={connectPhantom}
-                          disabled={isConnecting}
-                          className="flex items-center px-4 py-2 text-sm hover:bg-accent disabled:opacity-50"
-                        >
-                          <WalletIcon className="mr-2 h-4 w-4" />
-                          {isConnecting ? "Connecting..." : "Connect Phantom"}
-                        </button>
-                      ) : (
+                      {!isConnected ? (
                         <>
-                          <div className="px-4 py-2 text-xs text-muted-foreground">
-                            Wallet: {shortenAddress(walletAddress)}
-                          </div>
-                          <button
-                            onClick={disconnectPhantom}
-                            className="flex items-center px-4 py-2 text-sm hover:bg-accent"
-                          >
-                            <WalletIcon className="mr-2 h-4 w-4" />
-                            Disconnect Wallet
-                          </button>
+                          {wallets.length === 0 ? (
+                            <div className="px-4 py-2 text-xs text-muted-foreground">
+                              No wallets detected
+                            </div>
+                          ) : (
+                            <>
+                              <div className="px-4 py-1 text-xs font-medium text-muted-foreground">
+                                Available Wallets
+                              </div>
+                              {wallets.map((wallet, index) => (
+                                <WalletMenuItem
+                                  key={`${wallet.name}-${index}`}
+                                  wallet={wallet}
+                                  onConnect={() => {}}
+                                />
+                              ))}
+                            </>
+                          )}
                         </>
+                      ) : (
+                        selectedWallet &&
+                        selectedAccount && (
+                          <>
+                            <div className="px-4 py-2">
+                              <div className="flex items-center gap-2 mb-1">
+                                <WalletIconComponent wallet={selectedWallet} className="h-6 w-6" />
+                                <div className="flex flex-col">
+                                  <span className="text-sm font-medium">
+                                    {selectedWallet.name}
+                                  </span>
+                                  <span className="text-xs text-muted-foreground font-mono">
+                                    {shortenAddress(selectedAccount.address)}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                            <DisconnectButton
+                              wallet={selectedWallet}
+                              onDisconnect={() => {}}
+                            />
+                          </>
+                        )
                       )}
                       <div className="border-t border-border my-1" />
                       <button
