@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { TRPCReactProvider } from "@/trpc/client";
 import { Toaster } from "@/components/ui/sonner";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 export const metadata: Metadata = {
   title: "Shinrai node",
@@ -15,12 +16,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className="font-sans antialiased"
-      >
+      <body className="font-sans antialiased">
         <TRPCReactProvider>
-        {children}
-        <Toaster/>
+          <NuqsAdapter>{children}</NuqsAdapter>
+          <Toaster />
         </TRPCReactProvider>
       </body>
     </html>
