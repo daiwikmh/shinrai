@@ -23,6 +23,8 @@ import {
   SidebarMenuButton
 } from "@/components/ui/sidebar";
 import { authClient } from "@/lib/auth-client";
+import { useHasActiveSubscription } from "@/features/subscriptions/hooks/useSubscriptions";
+import { useQueryClient } from "@tanstack/react-query";
 
 const menuItems = [
   {
@@ -55,7 +57,9 @@ const menuItems = [
 const AppSidebar = () => {
   const router = useRouter();
   const pathname = usePathname();
-
+  const queryClient = useQueryClient();
+  const { hasActiveSubscription , isLoading} = useHasActiveSubscription();
+  
   return (
     <Sidebar>
       <SidebarHeader>
@@ -93,20 +97,22 @@ const AppSidebar = () => {
         ))}
       </SidebarContent>
       <SidebarFooter>
+        {!hasActiveSubscription && !isLoading && (
         <SidebarMenuItem>
           <SidebarMenuButton
            tooltip={"Upgrade To Pro"}
            className="gap-x-4 h-10 px-4"
-           onClick={() => {}}>
+           onClick={() => authClient.checkout({slug: "shinrai-pro"})}>
             <StarIcon className="h-4 w-4"/>
             <span>Upgrade To Pro</span>
           </SidebarMenuButton>
         </SidebarMenuItem>
+        )}
         <SidebarMenuItem>
           <SidebarMenuButton
            tooltip={"Billing Portal"}
            className="gap-x-4 h-10 px-4"
-           onClick={() => {}}>
+           onClick={() => authClient.customer.portal()}>
             <CreditCardIcon className="h-4 w-4"/>
             <span>Billing Portal</span>
           </SidebarMenuButton>
@@ -117,7 +123,10 @@ const AppSidebar = () => {
            className="gap-x-4 h-10 px-4"
            onClick={() => authClient.signOut({
              fetchOptions: {
-               onSuccess: () => { router.push("/login"); }     
+               onSuccess: () => { 
+                    queryClient.clear()
+                    router.push("/login");
+                 }     
              }
            }) }>
             <LogOutIcon className="h-4 w-4"/>
