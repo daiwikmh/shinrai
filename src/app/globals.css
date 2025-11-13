@@ -1,6 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Anonymous+Pro:ital,wght@0,400;0,700;1,400;1,700&family=Share+Tech&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "@mysten/dapp-kit/dist/index.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -94,12 +95,12 @@
   --chart-3: rgb(37, 99, 239);
   --chart-4: rgb(26, 78, 218);
   --chart-5: rgb(31, 63, 173);
-  --sidebar: rgb(240, 253, 250);
+  --sidebar: rgb(0, 0, 0);
   --sidebar-foreground: rgb(10, 10, 10);
   --sidebar-primary: rgb(23, 23, 23);
   --sidebar-primary-foreground: rgb(250, 250, 250);
   --sidebar-accent: rgb(23, 23, 23);
-  --sidebar-accent-foreground: rgb(70, 236, 213);
+  --sidebar-accent-foreground: rgb(250, 250, 213);
   --sidebar-border: rgb(229, 229, 229);
   --sidebar-ring: rgb(161, 161, 161);
   --font-sans: Share Tech, ui-sans-serif, sans-serif, system-ui;
@@ -124,6 +125,22 @@
   --spacing: 0.25rem;
 }
 
+.sidebar-menu-item {
+  background-color: #1e1e2f;
+  border-radius: 10px;
+  margin-bottom: 6px;
+}
+
+
+
+
+.sidebar-menu-text {
+  @apply gap-x-4 h-10 px-4;
+  color: #fff;
+  font-weight: 500;
+  font-size: 14px;
+  
+}
 
 .dark {
   --background: oklch(0.1450 0 0);
