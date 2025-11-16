@@ -13,7 +13,6 @@ export const AddNodeButton = memo(() => {
       onOpenChange={setSelectorOpen}
     >
     <Button 
-      onClick={() => {}} 
       size={"icon"}
       variant={"outline"}
       className="bg-background w-auto p-2"
