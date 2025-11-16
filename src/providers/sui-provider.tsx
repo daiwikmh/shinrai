@@ -13,7 +13,7 @@ const networks = {
 
 export function SuiProvider({ children }: { children: ReactNode }) {
   return (
-    <SuiClientProvider networks={networks} defaultNetwork="mainnet">
+    <SuiClientProvider networks={networks} defaultNetwork="testnet">
       <WalletProvider autoConnect>
         {children}
       </WalletProvider>

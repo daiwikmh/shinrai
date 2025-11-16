@@ -1,7 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Anonymous+Pro:ital,wght@0,400;0,700;1,400;1,700&family=Share+Tech&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
-@import "@mysten/dapp-kit/dist/index.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -129,6 +128,22 @@
   background-color: #1e1e2f;
   border-radius: 10px;
   margin-bottom: 6px;
+}
+
+
+.user-box {
+  @apply pl-3 pr-1 pt-2 pb-1.5 flex-1 flex 
+         bg-sidebar-accent
+         items-center rounded 
+         w-[85%];
+}
+
+.user-box-name {
+  @apply truncate text-xl font-sans text-orange-50;
+}
+
+.user-box-email {
+  @apply truncate text-xs text-white opacity-50;
 }
 
 

@@ -151,15 +151,23 @@ const AppSidebar = () => {
                 <UserIcon className="size-8" />
               )}
             </div>
-            <div className="group/item pl-3 pr-1.5 pt-2 pb-1.5 flex-1 flex bg-sidebar-accent hover:bg-sidebar-accent-active/75 items-center rounded group-data-[state=open]:bg-sidebar-accent-active group-data-[state=open]:hover:bg-sidebar-accent-active group-data-[state=open]:text-sidebar-accent-foreground">
-              <div className="grid text-orange-50 flex-1 text-left text-sm leading-tight">
-                <span className="truncate text-xl font-display">
+            <div
+              className=" user-box 
+    group/item
+    hover:bg-sidebar-accent-active/75
+    group-data-[state=open]:bg-sidebar-accent-active
+    group-data-[state=open]:hover:bg-sidebar-accent-active
+    group-data-[state=open]:text-sidebar-accent-foreground"
+            >
+              <div className="grid flex-1 text-left leading-tight">
+                <span className="user-box-name">
                   {session?.data?.user?.name || "User"}
                 </span>
-                <span className="truncate text-xs uppercase opacity-50 group-hover/item:opacity-100">
+                <span className="user-box-email">
                   {session?.data?.user?.email || "No email"}
                 </span>
               </div>
+
               <MoreVerticalIcon className="ml-auto size-4" />
             </div>
           </PopoverTrigger>
