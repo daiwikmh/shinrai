@@ -3,6 +3,7 @@ import "./globals.css";
 import { TRPCReactProvider } from "@/trpc/client";
 import { Toaster } from "@/components/ui/sonner";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
+import { Provider } from "jotai";
 
 export const metadata: Metadata = {
   title: "Shinrai node",
@@ -18,8 +19,12 @@ export default function RootLayout({
     <html lang="en">
       <body className="font-sans antialiased">
         <TRPCReactProvider>
-          <NuqsAdapter>{children}</NuqsAdapter>
-          <Toaster />
+          <NuqsAdapter>
+            <Provider>
+              {children}
+              <Toaster />
+            </Provider>
+          </NuqsAdapter>
         </TRPCReactProvider>
       </body>
     </html>
