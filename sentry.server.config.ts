@@ -4,7 +4,7 @@
 
 import * as Sentry from "@sentry/nextjs";
 
-Sentry.init({
+if (process.env.NODE_ENV === 'production' && process.env.SENTRY_ENABLED !== "false"){Sentry.init({
   dsn: "https://a215fde437e41174ebdc1e6e13ebf51a@o4510261970141184.ingest.de.sentry.io/4510261978726480",
   integrations: [
     // Add the Vercel AI SDK integration to sentry.server.config.ts
@@ -25,3 +25,4 @@ Sentry.init({
   // https://docs.sentry.io/platforms/javascript/guides/nextjs/configuration/options/#sendDefaultPii
   sendDefaultPii: true,
 });
+}

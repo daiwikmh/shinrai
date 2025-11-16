@@ -61,13 +61,13 @@ const AppSidebar = () => {
   const { hasActiveSubscription , isLoading} = useHasActiveSubscription();
   
   return (
-    <Sidebar>
+    <Sidebar className="border-none">
       <SidebarHeader>
         <SidebarMenuItem>
-          <SidebarMenuButton asChild className="gap-x-4 h-10 px-4">
+          <SidebarMenuButton asChild className="gap-x-2 h-10 px-4">
             <Link href="/" prefetch>
               <Image alt="Shinrai logo" src={"/logo/logo.png"} width={30} height={30} />
-                <span className="font-semibold text-sm">Shinrai</span>
+                <span className="font-semibold text-lg">Shinrai</span>
             </Link>
           </SidebarMenuButton>
         </SidebarMenuItem>
