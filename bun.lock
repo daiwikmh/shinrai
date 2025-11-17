@@ -83,7 +83,7 @@
         "superjson": "^2.2.5",
         "tailwind-merge": "^3.3.1",
         "vaul": "^1.1.2",
-        "zod": "^4.1.12",
+        "zod": "^4.1.12"
       },
       "devDependencies": {
         "@tailwindcss/postcss": "^4",
@@ -98,9 +98,9 @@
         "tailwindcss": "^4",
         "tsx": "^4.20.6",
         "tw-animate-css": "^1.4.0",
-        "typescript": "^5",
-      },
-    },
+        "typescript": "^5"
+      }
+    }
   },
   "packages": {
     "@0no-co/graphql.web": ["@0no-co/graphql.web@1.2.0", "", { "peerDependencies": { "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0" }, "optionalPeers": ["graphql"] }, "sha512-/1iHy9TTr63gE1YcR5idjx8UREz1s0kFhydf3bBLCXyqjhkIc6igAzTOx3zPifCwFR87tsh/4Pa9cNts6d2otw=="],
@@ -817,13 +817,13 @@
 
     "@sentry/cli-darwin": ["@sentry/cli-darwin@2.57.0", "", { "os": "darwin" }, "sha512-v1wYQU3BcCO+Z3OVxxO+EnaW4oQhuOza6CXeYZ0z5ftza9r0QQBLz3bcZKTVta86xraNm0z8GDlREwinyddOxQ=="],
 
-    "@sentry/cli-linux-arm": ["@sentry/cli-linux-arm@2.57.0", "", { "os": [ "linux", "android", "freebsd", ], "cpu": "arm" }, "sha512-uNHB8xyygqfMd1/6tFzl9NUkuVefg7jdZtM/vVCQVaF/rJLWZ++Wms+LLhYyKXKN8yd7J9wy7kTEl4Qu4jWbGQ=="],
+    "@sentry/cli-linux-arm": ["@sentry/cli-linux-arm@2.57.0", "", { "os": [ "linux", "android", "freebsd" ], "cpu": "arm" }, "sha512-uNHB8xyygqfMd1/6tFzl9NUkuVefg7jdZtM/vVCQVaF/rJLWZ++Wms+LLhYyKXKN8yd7J9wy7kTEl4Qu4jWbGQ=="],
 
-    "@sentry/cli-linux-arm64": ["@sentry/cli-linux-arm64@2.57.0", "", { "os": [ "linux", "android", "freebsd", ], "cpu": "arm64" }, "sha512-Kh1jTsMV5Fy/RvB381N/woXe1qclRMqsG6kM3Gq6m6afEF/+k3PyQdNW3HXAola6d63EptokLtxPG2xjWQ+w9Q=="],
+    "@sentry/cli-linux-arm64": ["@sentry/cli-linux-arm64@2.57.0", "", { "os": [ "linux", "android", "freebsd" ], "cpu": "arm64" }, "sha512-Kh1jTsMV5Fy/RvB381N/woXe1qclRMqsG6kM3Gq6m6afEF/+k3PyQdNW3HXAola6d63EptokLtxPG2xjWQ+w9Q=="],
 
-    "@sentry/cli-linux-i686": ["@sentry/cli-linux-i686@2.57.0", "", { "os": [ "linux", "android", "freebsd", ], "cpu": "ia32" }, "sha512-EYXghoK/tKd0zqz+KD/ewXXE3u1HLCwG89krweveytBy/qw7M5z58eFvw+iGb1Vnbl1f/fRD0G4E0AbEsPfmpg=="],
+    "@sentry/cli-linux-i686": ["@sentry/cli-linux-i686@2.57.0", "", { "os": [ "linux", "android", "freebsd"], "cpu": "ia32" }, "sha512-EYXghoK/tKd0zqz+KD/ewXXE3u1HLCwG89krweveytBy/qw7M5z58eFvw+iGb1Vnbl1f/fRD0G4E0AbEsPfmpg=="],
 
-    "@sentry/cli-linux-x64": ["@sentry/cli-linux-x64@2.57.0", "", { "os": [ "linux", "android", "freebsd", ], "cpu": "x64" }, "sha512-CyZrP/ssHmAPLSzfd4ydy7icDnwmDD6o3QjhkWwVFmCd+9slSBMQxpIqpamZmrWE6X4R+xBRbSUjmdoJoZ5yMw=="],
+    "@sentry/cli-linux-x64": ["@sentry/cli-linux-x64@2.57.0", "", { "os": [ "linux", "android", "freebsd" ], "cpu": "x64" }, "sha512-CyZrP/ssHmAPLSzfd4ydy7icDnwmDD6o3QjhkWwVFmCd+9slSBMQxpIqpamZmrWE6X4R+xBRbSUjmdoJoZ5yMw=="],
 
     "@sentry/cli-win32-arm64": ["@sentry/cli-win32-arm64@2.57.0", "", { "os": "win32", "cpu": "arm64" }, "sha512-wji/GGE4Lh5I/dNCsuVbg6fRvttvZRG6db1yPW1BSvQRh8DdnVy1CVp+HMqSq0SRy/S4z60j2u+m4yXMoCL+5g=="],
 
@@ -2163,7 +2163,6 @@
 
     "@babel/core/json5": ["json5@2.2.3", "", { "bin": "lib/cli.js" }, "sha512-XmOWe7eyHYH14cLdVPoyg+GOH3rYX++KpzrylJwSW98t3Nk+U8XOl8FWKOgwtzdb8lXGf6zYwDUzeHMWfxasyg=="],
 
-    "@babel/helper-compilation-targets/lru-cache": ["lru-cache@5.1.1", "", { "dependencies": { "yallist": "^3.0.2" } }, "sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w=="],
 
     "@babel/helper-compilation-targets/lru-cache": ["lru-cache@5.1.1", "", { "dependencies": { "yallist": "^3.0.2" } }, "sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w=="],
 
@@ -3159,6 +3158,6 @@
 
     "npm/node-gyp/make-fetch-happen/cacache/glob/path-scurry": ["path-scurry@1.11.1", "", { "dependencies": { "lru-cache": "^10.2.0", "minipass": "^5.0.0 || ^6.0.2 || ^7.0.0" } }, "sha512-Xa4Nw17FS9ApQFJ9umLiJS4orGjm7ZzwUrwamcGQuHSzDyth9boKDaycYdDcZDuqYATXw4HFXgaqWTctW/v1HA=="],
 
-    "npm/node-gyp/make-fetch-happen/cacache/glob/path-scurry/minipass": ["minipass@5.0.0", "", {}, "sha512-3FnjYuehv9k6ovOEbyOswadCDPX1piCfhV8ncmYtHOjuPwylVWsghTLo7rabjC3Rx5xD4HDx8Wm1xnMF7S5qFQ=="],
+    "npm/node-gyp/make-fetch-happen/cacache/glob/path-scurry/minipass": ["minipass@5.0.0", "", {}, "sha512-3FnjYuehv9k6ovOEbyOswadCDPX1piCfhV8ncmYtHOjuPwylVWsghTLo7rabjC3Rx5xD4HDx8Wm1xnMF7S5qFQ=="]
   }
 }
