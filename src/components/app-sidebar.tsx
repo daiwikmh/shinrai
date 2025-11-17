@@ -90,11 +90,16 @@ const AppSidebar = () => {
   const isConnected = !!selectedWallet && !!selectedAccount;
 
   return (
+<<<<<<< HEAD
     <Sidebar className="w-[250px] relative">
+=======
+    <Sidebar className="border-none">
+>>>>>>> a104939eb85510118843b94bf61051aaba3597e2
       <SidebarHeader>
         <SidebarMenuItem>
-          <SidebarMenuButton asChild className="gap-x-4 h-10 px-4">
+          <SidebarMenuButton asChild className="gap-x-2 h-10 px-4">
             <Link href="/" prefetch>
+<<<<<<< HEAD
               <Image
                 alt="Shinrai logo"
                 src={"/logo/logo.png"}
@@ -102,6 +107,10 @@ const AppSidebar = () => {
                 height={40}
               />
               <span className="font-semibold text-2xl text-white">Shinrai</span>
+=======
+              <Image alt="Shinrai logo" src={"/logo/logo.png"} width={30} height={30} />
+                <span className="font-semibold text-lg">Shinrai</span>
+>>>>>>> a104939eb85510118843b94bf61051aaba3597e2
             </Link>
           </SidebarMenuButton>
         </SidebarMenuItem>
