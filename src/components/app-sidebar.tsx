@@ -176,7 +176,7 @@ const AppSidebar = () => {
                   className="size-12 rounded-2xl border-2 border-foreground"
                 />
                 <div className="flex flex-col">
-                  <span className="text-sm font-semibold">Profile</span>
+                  <span className="text-sm font-semibold">{session?.user?.name}</span>
                   <span className="text-xs truncate font-normal w-40">
                     {session?.user?.email}
                   </span>
