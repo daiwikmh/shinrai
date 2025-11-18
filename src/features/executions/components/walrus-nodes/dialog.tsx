@@ -37,8 +37,8 @@ const formSchema = z.object({
   fileSource: z.string().optional(),
   fileName: z.string().optional(),
   fileSize: z.number().optional(),
-  epochs: z.number().min(1).max(100).default(5),
-  deletable: z.boolean().default(true),
+  epochs: z.number().min(1).max(100),
+  deletable: z.boolean(),
 });
 
 interface Props {
