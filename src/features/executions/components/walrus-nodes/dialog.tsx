@@ -19,24 +19,13 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 
 const formSchema = z.object({
-  inputMode: z.enum(["file", "variable", "url"]),
-  fileSource: z.string().optional(),
-  fileName: z.string().optional(),
-  fileSize: z.number().optional(),
+  fileDataSource: z.string().optional(),
   epochs: z.number().min(1).max(100),
   deletable: z.boolean(),
 });
@@ -45,12 +34,11 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (values: z.infer<typeof formSchema>) => void;
-  defaultInputMode?: "file" | "variable" | "url";
-  defaultFileSource?: string;
-  defaultFileName?: string;
-  defaultFileSize?: number;
+  defaultFileDataSource?: string;
   defaultEpochs?: number;
   defaultDeletable?: boolean;
+  connectedFileName?: string;
+  connectedFileSize?: number;
 }
 
 export type FormType = z.infer<typeof formSchema>;
@@ -59,57 +47,22 @@ export const WalrusStorageDialog = ({
   open,
   onOpenChange,
   onSubmit,
-  defaultInputMode,
-  defaultFileSource,
-  defaultFileName,
-  defaultFileSize,
+  defaultFileDataSource,
   defaultEpochs,
   defaultDeletable,
+  connectedFileName,
+  connectedFileSize,
 }: Props) => {
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-
   const form = useForm<FormType>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      inputMode: defaultInputMode || "file",
-      fileSource: defaultFileSource || "",
-      fileName: defaultFileName || "",
-      fileSize: defaultFileSize || 0,
+      fileDataSource: defaultFileDataSource || "",
       epochs: defaultEpochs || 5,
       deletable: defaultDeletable ?? true,
     },
   });
 
-  const watchInputMode = form.watch("inputMode");
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-      form.setValue("fileName", file.name);
-      form.setValue("fileSize", file.size);
-      // Store file reference or convert to base64 for workflow storage
-      form.setValue("fileSource", `file://${file.name}`);
-    }
-  };
-
   const handleSubmit = (values: z.infer<typeof formSchema>) => {
-    // Validate based on input mode
-    if (values.inputMode === "file" && !selectedFile && !defaultFileName) {
-      form.setError("fileSource", {
-        type: "manual",
-        message: "Please select a file to upload",
-      });
-      return;
-    }
-    if ((values.inputMode === "variable" || values.inputMode === "url") && !values.fileSource) {
-      form.setError("fileSource", {
-        type: "manual",
-        message: "Please provide a file source",
-      });
-      return;
-    }
-
     onSubmit(values);
     onOpenChange(false);
   };
@@ -117,16 +70,12 @@ export const WalrusStorageDialog = ({
   useEffect(() => {
     if (open) {
       form.reset({
-        inputMode: defaultInputMode || "file",
-        fileSource: defaultFileSource || "",
-        fileName: defaultFileName || "",
-        fileSize: defaultFileSize || 0,
+        fileDataSource: defaultFileDataSource || "",
         epochs: defaultEpochs || 5,
         deletable: defaultDeletable ?? true,
       });
-      setSelectedFile(null);
     }
-  }, [form, open, defaultInputMode, defaultFileSource, defaultFileName, defaultFileSize, defaultEpochs, defaultDeletable]);
+  }, [form, open, defaultFileDataSource, defaultEpochs, defaultDeletable]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -134,7 +83,7 @@ export const WalrusStorageDialog = ({
         <DialogHeader>
           <DialogTitle>Walrus Storage</DialogTitle>
           <DialogDescription>
-            Configure settings for the Walrus Storage Node.
+            Store file data on Walrus decentralized storage network. Connect this node to a File Upload node.
           </DialogDescription>
         </DialogHeader>
        <Form {...form}>
@@ -142,91 +91,31 @@ export const WalrusStorageDialog = ({
            onSubmit={form.handleSubmit(handleSubmit)}
            className="space-y-6 mt-4"
          >
-           <FormField
-             control={form.control}
-             name="inputMode"
-             render={({ field }) => (
-               <FormItem>
-                 <FormLabel>Input Mode</FormLabel>
-                 <Select
-                   onValueChange={field.onChange}
-                   defaultValue={field.value}
-                 >
-                   <FormControl>
-                     <SelectTrigger className="w-full">
-                       <SelectValue placeholder="Select input mode"/>
-                     </SelectTrigger>
-                   </FormControl>
-                   <SelectContent>
-                     <SelectItem value="file">Upload File</SelectItem>
-                     <SelectItem value="variable">From Previous Node</SelectItem>
-                     <SelectItem value="url">From URL</SelectItem>
-                   </SelectContent>
-                 </Select>
-                 <FormDescription>
-                   Choose how to provide the file for storage
-                 </FormDescription>
-                 <FormMessage />
-               </FormItem>
-             )}
-           />
-
-           {watchInputMode === "file" && (
-             <div className="space-y-2">
-               <Label htmlFor="file">Select File</Label>
-               <Input
-                 id="file"
-                 type="file"
-                 onChange={handleFileChange}
-               />
-               {(selectedFile || defaultFileName) && (
-                 <p className="text-sm text-muted-foreground">
-                   Selected: {selectedFile?.name || defaultFileName}
-                   {(selectedFile?.size || defaultFileSize) &&
-                     ` (${((selectedFile?.size || defaultFileSize || 0) / 1024).toFixed(2)} KB)`
-                   }
-                 </p>
-               )}
+           {connectedFileName ? (
+             <div className="p-4 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-md">
+               <p className="text-sm font-medium text-green-900 dark:text-green-100">
+                 Connected File Upload Node
+               </p>
+               <div className="mt-2 text-sm text-green-700 dark:text-green-300 space-y-1">
+                 <p><strong>File:</strong> {connectedFileName}</p>
+                 <p><strong>Size:</strong> {((connectedFileSize || 0) / 1024).toFixed(2)} KB</p>
+               </div>
              </div>
-           )}
-
-           {watchInputMode === "variable" && (
+           ) : (
              <FormField
                control={form.control}
-               name="fileSource"
+               name="fileDataSource"
                render={({ field }) => (
                  <FormItem>
-                   <FormLabel>Variable Reference</FormLabel>
+                   <FormLabel>File Data Source</FormLabel>
                    <FormControl>
                      <Input
-                       placeholder="{{previousNode.fileData}}"
+                       placeholder="{{fileUpload.fileName}}"
                        {...field}
                      />
                    </FormControl>
                    <FormDescription>
-                     Use {"{{variable}}"} to reference file data from previous nodes
-                   </FormDescription>
-                   <FormMessage />
-                 </FormItem>
-               )}
-             />
-           )}
-
-           {watchInputMode === "url" && (
-             <FormField
-               control={form.control}
-               name="fileSource"
-               render={({ field }) => (
-                 <FormItem>
-                   <FormLabel>File URL</FormLabel>
-                   <FormControl>
-                     <Input
-                       placeholder="https://example.com/file.pdf"
-                       {...field}
-                     />
-                   </FormControl>
-                   <FormDescription>
-                     Provide a URL to fetch the file from
+                     Connect a File Upload node or reference file data using {"{{nodeName.fileName}}"}
                    </FormDescription>
                    <FormMessage />
                  </FormItem>

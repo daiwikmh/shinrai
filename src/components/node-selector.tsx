@@ -5,7 +5,8 @@ import { useReactFlow } from "@xyflow/react";
 import {
   GlobeIcon,
   SquareMousePointerIcon,
-  DatabaseIcon
+  DatabaseIcon,
+  UploadIcon
 } from "lucide-react";
 import { useCallback } from "react";
 import { toast } from "sonner";
@@ -43,6 +44,12 @@ const executionNodes: NodeTypeOption[] = [
     label: "Http Request",
     description: "Makes an http request",
     icon: GlobeIcon
+  },
+  {
+    type: NodeType.FILE_UPLOAD,
+    label: "File Upload",
+    description: "Upload a file to use in the workflow",
+    icon: UploadIcon
   }
 ]
 
@@ -209,6 +216,8 @@ export function NodeSelector({
             );
           })}
         </div>
+        <Separator/>
+
 
       </SheetContent>
     </Sheet>
