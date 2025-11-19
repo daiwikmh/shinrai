@@ -27,7 +27,7 @@ import {
   SelectTrigger, 
   SelectValue } from "@/components/ui/select";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -68,7 +68,10 @@ export const HttpRequestDialog = ({
     },
   });
   
-  const watchMethod = form.watch("method");
+  const watchMethod = useWatch({
+    control: form.control,
+    name: "method"
+  });
   const showBodyField = ["PATCH", "POST", "PUT"].includes(watchMethod);
   
   const handleSubmit = (values: z.infer<typeof formSchema>) => {

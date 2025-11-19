@@ -25,6 +25,7 @@ import {
 import { authClient } from "@/lib/auth-client";
 import { useHasActiveSubscription } from "@/features/subscriptions/hooks/useSubscriptions";
 import { useQueryClient } from "@tanstack/react-query";
+import { cn } from "@/lib/utils";
 
 const menuItems = [
   {
@@ -62,7 +63,7 @@ const AppSidebar = () => {
   const { hasActiveSubscription, isLoading } = useHasActiveSubscription();
 
   return (
-    <Sidebar className="border-none">
+    <Sidebar className="border-none" collapsible="icon">
       <SidebarHeader>
         <SidebarMenuItem>
           <SidebarMenuButton asChild className="gap-x-1 h-10 px-4">
@@ -150,10 +151,10 @@ const AppSidebar = () => {
           >
             <Image
               src={"/logo/user_icon.png"}
-              width={500}
-              height={500}
+              width={100}
+              height={100}
               alt="user logo"
-              className="size-12 rounded-2xl border-2 border-foreground"
+              className={cn("w-10 rounded-xl border-2 border-foreground")}
             />
             <div className="flex flex-col">
             <span className="text-sm font-semibold">Sign Out</span>
