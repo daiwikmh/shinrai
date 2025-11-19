@@ -10,6 +10,7 @@ type FileUploadNodeData = {
   fileName?: string;
   fileSize?: number;
   fileType?: string;
+  fileContent?: string; // Base64 encoded file content
   [key: string]: unknown;
 };
 
@@ -30,6 +31,7 @@ export const FileUploadNode = memo((props: NodeProps<FileUploadNodeType>) => {
             fileName: values.fileName,
             fileSize: values.fileSize,
             fileType: values.fileType,
+            fileContent: values.fileContent,
           }
         }
       }
@@ -55,6 +57,7 @@ export const FileUploadNode = memo((props: NodeProps<FileUploadNodeType>) => {
         defaultFileName={nodeData?.fileName}
         defaultFileSize={nodeData?.fileSize}
         defaultFileType={nodeData?.fileType}
+        defaultFileContent={nodeData?.fileContent}
       />
       <BaseExecutionNode
         {...props}

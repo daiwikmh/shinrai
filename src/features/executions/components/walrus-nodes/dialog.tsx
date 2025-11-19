@@ -21,8 +21,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { client } from "@/app/(dashboard)/(rest)/onchain/walrus/connect";
+import { Loader2 } from "lucide-react";
 
 const formSchema = z.object({
   fileDataSource: z.string().optional(),
@@ -39,6 +41,7 @@ interface Props {
   defaultDeletable?: boolean;
   connectedFileName?: string;
   connectedFileSize?: number;
+  connectedFileContent?: string;
 }
 
 export type FormType = z.infer<typeof formSchema>;
@@ -52,7 +55,15 @@ export const WalrusStorageDialog = ({
   defaultDeletable,
   connectedFileName,
   connectedFileSize,
+  connectedFileContent,
 }: Props) => {
+  const [storageCostData, setStorageCostData] = useState<{
+    storageCost: bigint;
+    writeCost: bigint;
+    totalCost: bigint;
+  } | null>(null);
+  const [loadingCost, setLoadingCost] = useState(false);
+
   const form = useForm<FormType>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -63,19 +74,71 @@ export const WalrusStorageDialog = ({
   });
 
   const handleSubmit = (values: z.infer<typeof formSchema>) => {
-    onSubmit(values);
+    // When a file is connected, use the connected file name instead of manual input
+    if (connectedFileName) {
+      onSubmit({
+        ...values,
+        fileDataSource: connectedFileName,
+      });
+    } else {
+      // When no file is connected, require manual input
+      if (!values.fileDataSource) {
+        form.setError("fileDataSource", {
+          type: "manual",
+          message: "Please connect a File Upload node or enter a file data source",
+        });
+        return;
+      }
+      onSubmit(values);
+    }
     onOpenChange(false);
   };
 
+  // Calculate storage cost when file size or epochs change
+  useEffect(() => {
+    const calculateCost = async () => {
+      if (!connectedFileSize || !open) {
+        setStorageCostData(null);
+        return;
+      }
+
+      const epochs = form.watch("epochs");
+      if (!epochs || epochs < 1) {
+        return;
+      }
+
+      setLoadingCost(true);
+      try {
+        const cost = await client.walrus.storageCost(connectedFileSize, epochs);
+        setStorageCostData(cost);
+      } catch (error) {
+        console.error("Error calculating storage cost:", error);
+        setStorageCostData(null);
+      } finally {
+        setLoadingCost(false);
+      }
+    };
+
+    calculateCost();
+  }, [connectedFileSize, form.watch("epochs"), open]);
+
   useEffect(() => {
     if (open) {
+      console.log("Walrus Dialog - Opening with data:", {
+        connectedFileName,
+        connectedFileSize,
+        hasConnectedFileContent: !!connectedFileContent,
+        isConnected: !!connectedFileName,
+      });
+
       form.reset({
-        fileDataSource: defaultFileDataSource || "",
+        // Only use defaultFileDataSource when there's no connected file
+        fileDataSource: connectedFileName ? connectedFileName : (defaultFileDataSource || ""),
         epochs: defaultEpochs || 5,
         deletable: defaultDeletable ?? true,
       });
     }
-  }, [form, open, defaultFileDataSource, defaultEpochs, defaultDeletable]);
+  }, [form, open, defaultFileDataSource, defaultEpochs, defaultDeletable, connectedFileName, connectedFileSize, connectedFileContent]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -92,15 +155,40 @@ export const WalrusStorageDialog = ({
            className="space-y-6 mt-4"
          >
            {connectedFileName ? (
-             <div className="p-4 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-md">
-               <p className="text-sm font-medium text-green-900 dark:text-green-100">
-                 Connected File Upload Node
-               </p>
-               <div className="mt-2 text-sm text-green-700 dark:text-green-300 space-y-1">
-                 <p><strong>File:</strong> {connectedFileName}</p>
-                 <p><strong>Size:</strong> {((connectedFileSize || 0) / 1024).toFixed(2)} KB</p>
+             <>
+               <div className="p-4 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-md">
+                 <p className="text-sm font-medium text-green-900 dark:text-green-100">
+                   Connected File Upload Node
+                 </p>
+                 <div className="mt-2 text-sm text-green-700 dark:text-green-300 space-y-1">
+                   <p><strong>File:</strong> {connectedFileName}</p>
+                   <p><strong>Size:</strong> {((connectedFileSize || 0) / 1024).toFixed(2)} KB</p>
+                 </div>
                </div>
-             </div>
+
+               {/* Storage Cost Display */}
+               {loadingCost ? (
+                 <div className="p-4 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-md">
+                   <div className="flex items-center gap-2">
+                     <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+                     <p className="text-sm text-blue-900 dark:text-blue-100">Calculating storage cost...</p>
+                   </div>
+                 </div>
+               ) : storageCostData ? (
+                 <div className="p-4 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-md">
+                   <p className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-2">
+                     Estimated Storage Cost
+                   </p>
+                   <div className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
+                     <p><strong>Storage Cost:</strong> {(Number(storageCostData.storageCost) / 1_000_000_000).toFixed(9)} WAL</p>
+                     <p><strong>Write Cost:</strong> {(Number(storageCostData.writeCost) / 1_000_000_000).toFixed(9)} WAL</p>
+                     <p className="pt-1 border-t border-blue-200 dark:border-blue-800">
+                       <strong>Total Cost:</strong> {(Number(storageCostData.totalCost) / 1_000_000_000).toFixed(9)} WAL
+                     </p>
+                   </div>
+                 </div>
+               ) : null}
+             </>
            ) : (
              <FormField
                control={form.control}
@@ -110,12 +198,12 @@ export const WalrusStorageDialog = ({
                    <FormLabel>File Data Source</FormLabel>
                    <FormControl>
                      <Input
-                       placeholder="{{fileUpload.fileName}}"
+                       placeholder="Connect a File Upload node above"
                        {...field}
                      />
                    </FormControl>
                    <FormDescription>
-                     Connect a File Upload node or reference file data using {"{{nodeName.fileName}}"}
+                     Please connect a File Upload node to this Walrus Storage node to automatically use the uploaded file.
                    </FormDescription>
                    <FormMessage />
                  </FormItem>

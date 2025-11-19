@@ -29,6 +29,7 @@ const formSchema = z.object({
   fileName: z.string().optional(),
   fileSize: z.number().optional(),
   fileType: z.string().optional(),
+  fileContent: z.string().optional(), // Base64 encoded file content
 });
 
 interface Props {
@@ -38,6 +39,7 @@ interface Props {
   defaultFileName?: string;
   defaultFileSize?: number;
   defaultFileType?: string;
+  defaultFileContent?: string;
 }
 
 export type FormType = z.infer<typeof formSchema>;
@@ -49,6 +51,7 @@ export const FileUploadDialog = ({
   defaultFileName,
   defaultFileSize,
   defaultFileType,
+  defaultFileContent,
 }: Props) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
@@ -58,16 +61,25 @@ export const FileUploadDialog = ({
       fileName: defaultFileName || "",
       fileSize: defaultFileSize || 0,
       fileType: defaultFileType || "",
+      fileContent: defaultFileContent || "",
     },
   });
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setSelectedFile(file);
       form.setValue("fileName", file.name);
       form.setValue("fileSize", file.size);
       form.setValue("fileType", file.type);
+
+      // Convert file to base64 for storage
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64 = reader.result as string;
+        form.setValue("fileContent", base64);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -80,6 +92,14 @@ export const FileUploadDialog = ({
       return;
     }
 
+    console.log("File Upload Node - Submitting file data:", {
+      fileName: values.fileName,
+      fileSize: values.fileSize,
+      fileType: values.fileType,
+      hasFileContent: !!values.fileContent,
+      fileContentLength: values.fileContent?.length,
+    });
+
     onSubmit(values);
     onOpenChange(false);
   };
@@ -90,10 +110,11 @@ export const FileUploadDialog = ({
         fileName: defaultFileName || "",
         fileSize: defaultFileSize || 0,
         fileType: defaultFileType || "",
+        fileContent: defaultFileContent || "",
       });
       setSelectedFile(null);
     }
-  }, [form, open, defaultFileName, defaultFileSize, defaultFileType]);
+  }, [form, open, defaultFileName, defaultFileSize, defaultFileType, defaultFileContent]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
