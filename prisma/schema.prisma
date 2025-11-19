@@ -83,7 +83,10 @@ enum NodeType {
  INITIAL
  MANUAL_TRIGGER
  HTTP_REQUEST
+ WALRUS_NODE_STORAGE
 }
+
+
 
 model Node {
   id String @id @default(cuid())
