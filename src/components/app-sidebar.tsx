@@ -8,6 +8,7 @@ import {
   StarIcon,
   UserIcon,
   SettingsIcon,
+  Link2Icon
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -65,7 +66,7 @@ const menuItems = [
       },
       {
         title: "onchain",
-        icon: HistoryIcon,
+        icon: Link2Icon,
         href: "/onchain",
       },
     ],
@@ -100,6 +101,7 @@ const AppSidebar = () => {
                 src={"/logo/logo.png"}
                 width={80}
                 height={80}
+                className="w-10"
               />
               <span className="font-semibold text-lg">Shinrai</span>
             </Link>
@@ -173,7 +175,7 @@ const AppSidebar = () => {
                   width={500}
                   height={500}
                   alt="user logo"
-                  className="size-12 rounded-2xl border-2 border-foreground"
+                  className="w-10 rounded-xl border-2 border-foreground"
                 />
                 <div className="flex flex-col">
                   <span className="text-sm font-semibold">{session?.user?.name}</span>
