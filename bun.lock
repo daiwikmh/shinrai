@@ -13,6 +13,7 @@
         "@mysten/dapp-kit": "^0.19.9",
         "@mysten/sui": "^1.45.0",
         "@mysten/walrus": "^0.8.4",
+        "@mysten/walrus-wasm": "^0.1.1",
         "@noble/hashes": "^2.0.1",
         "@openrouter/ai-sdk-provider": "^1.2.0",
         "@paralleldrive/cuid2": "^3.0.4",

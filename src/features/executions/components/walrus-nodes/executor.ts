@@ -5,8 +5,10 @@ import { client } from "@/config/connect";
 import ky from "ky";
 import { NonRetriableError } from "inngest";
 import z from "zod";
-import { useSuspenseWorkflow } from "@/features/workflows/hooks/use-workflows";
-import type { Signer } from "@mysten/sui/cryptography";
+import { decodeSuiPrivateKey, type Signer } from "@mysten/sui/cryptography";
+import prisma from "@/lib/db";
+import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
+import { fromBase64, fromHex } from "@mysten/utils";
 
 
 function getContentTypeFromExtension(extension: string): string {
@@ -49,6 +51,7 @@ function getContentTypeFromExtension(extension: string): string {
   };
   return contentTypeMap[extension.toLowerCase()] || 'application/octet-stream';
   }
+ 
 const telegramFileSchema = z.object({
   url: z.string().url(),
   fileId: z.string(),
@@ -80,99 +83,90 @@ export const walrusStorageExecutor: NodeExecutor<WalrusStorageData> = async ({
   step,
   publish
 }) => {
-    // Implement the logic for manual trigger execution here
-    await publish(
-      walrusNodeChannel().status({
-        nodeId,
-        status:  "loading"
-      })
-    )
-    
-   try { const result = await step.run("walrus-node", async () => {
-      const telegramData = context.telegramNode;
-      const workflowId = context.workflowId;
-      const { data: workflow } = useSuspenseWorkflow(`${workflowId}`);
-      if (!telegramData) {
-        throw new NonRetriableError(
-          "WalrusStorageNode: No file data found. Please connect this node to a Telegram trigger or other file source."
-        );
+  
+  await publish(
+    walrusNodeChannel().status({
+      nodeId,
+      status: "loading"
+    })
+  )
+
+  try {
+    const result = await step.run("walrus-node", async () => {
+      // ... (Keep your existing checks for telegramData and parsedTelegram) ...
+      const workflowId = (context as any).workflowId;
+      const telegramData = (context as any).telegramNode; 
+      
+      
+      // [Validation logic omitted for brevity, keep your existing checks]
+      if (!telegramData?.file) throw new NonRetriableError("No file found");
+      const telegramFile = telegramData.file;
+
+      // 1. Fetch from DB
+      const workflow = await prisma.workflow.findUnique({
+        where: { id: workflowId },
+      });
+
+      if (!workflow || !workflow.keypair) {
+        throw new NonRetriableError("Workflow wallet/keypair not found in DB.");
       }
 
-      const validatedTelegram = telegramNodeSchema.safeParse(telegramData);
-
-      if (!validatedTelegram.success) {
-        throw new NonRetriableError(
-          `WalrusStorageNode: Invalid telegram data structure. Error: ${validatedTelegram.error.message}`
-        );
-      }
-
-      if (!validatedTelegram.data.file) {
-        throw new NonRetriableError(
-          "WalrusStorageNode: No file found in Telegram message. Please send an image, document, or other file to the bot."
-        );
-      }
-
-      const telegramFile = validatedTelegram.data.file;
-      if(!telegramFile) {
-        throw new NonRetriableError('No file provided');
-      }
+      // 2. RECONSTRUCT THE SIGNER
+      // This turns your DB string back into a functional object
+      const secretKey = workflow.privateKey
+      console.log(secretKey)
+      const signer = Ed25519Keypair.fromSecretKey(secretKey);
+      
+      // 3. Download & Prepare
       const fileName = `file.${telegramFile.extension}`;
       const contentType = getContentTypeFromExtension(telegramFile.extension);
+      
       const response = await ky.get(telegramFile.url);
       const arrayBuffer = await response.arrayBuffer();
       const fileBuffer = new Uint8Array(arrayBuffer);
+
       const upload = WalrusFile.from({
-              contents: fileBuffer,
-              identifier: fileName,
-              tags: {
-                'content-type': contentType
-              }
-            });
-      const keyPair:unknown = workflow.keypair;
-          // Upload file to Walrus
+        contents: fileBuffer,
+        identifier: fileName,
+        tags: { 'content-type': contentType }
+      });
+
+      // 4. Upload using the reconstructed signer
       const uploadResults = await client.walrus.writeFiles({
-          files: [upload],
-          epochs: data.epochs || 3,
-          deletable: true,
-          signer: keyPair as Signer,
-        });
-    
-          // Extract the first result (we only upload one file)
+        files: [upload],
+        epochs: data.epochs || 1,
+        deletable: true,
+        signer: signer, 
+      });
+
       const uploadResult = uploadResults[0];
 
-      const responsePayload = {
+      // 5. Success
+      return {
+        ...context,
         walrusUpload: {
           blobId: uploadResult.blobId,
-          success: uploadResult.id === 'certified',
-          status: uploadResult.id,
+          status: 'uploaded',
+          suiObjectId: uploadResult.id,
           fileName: fileName,
-          epochs: data.epochs || 3,
           metadata: {
             contentType: contentType,
             size: fileBuffer.length,
           }
-  }
-  };
-      return {
-        ...context,
-        ...responsePayload
-      }
-  });
-  
+        }
+      };
+    });
+
+    await publish(walrusNodeChannel().status({ nodeId, status: "success" }));
+    return result;
+
+  } catch (error: any) {
     await publish(
       walrusNodeChannel().status({
         nodeId,
-        status:  "success"
+        status: "error",
       })
-    )
-    return result
-   } catch (error) {
-    await publish(
-      walrusNodeChannel().status({
-        nodeId,
-        status:  "error"
-      })
-    )
+    );
     throw error;
-   }
+  }
 };

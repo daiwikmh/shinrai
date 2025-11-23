@@ -4,6 +4,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* config options here */
   devIndicators: false,
+  serverExternalPackages: ['@mysten/walrus', '@mysten/walrus-wasm'],
   async redirects() {
     return [
       {
