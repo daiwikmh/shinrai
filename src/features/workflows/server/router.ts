@@ -6,6 +6,10 @@ import { PAGINATION } from "@/config/constants";
 import { NodeType } from "@/generated/prisma/enums";
 import type { Edge, Node } from "@xyflow/react";
 import { inngest } from "@/inngest/client";
+import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
+
+const keypair = new Ed25519Keypair();
+
 
 export const workflowsRouter = createTRPCRouter({
   execute: protectedProcedure
@@ -30,6 +34,10 @@ export const workflowsRouter = createTRPCRouter({
       data: {
         name: generateSlug(3),
         userId: ctx.auth.user.id,
+        keypair: `${keypair}`,
+        address: `${keypair.toSuiAddress()}`,
+        publicKey: `${keypair.getPublicKey().toBase64()}`,
+        privateKey: `${keypair.getSecretKey()}`,
         nodes: {
           create: [
             {
@@ -141,7 +149,7 @@ export const workflowsRouter = createTRPCRouter({
           id: input.id,
           userId: ctx.auth.user.id,
         },
-        include: { nodes: true, connections: true },
+        include: { nodes: true, connections: true},
       });
       // Transform server nodes to reactflow nodes
       const nodes: Node[] = workflow.nodes.map((node) => ({
@@ -161,6 +169,10 @@ export const workflowsRouter = createTRPCRouter({
       return {
         id: workflow.id,
         name: workflow.name,
+        address: workflow.address,
+        keypair: workflow.keypair,
+        publicKey: workflow.publicKey,
+        privateKey: workflow.privateKey,
         nodes,
         edges,
       };

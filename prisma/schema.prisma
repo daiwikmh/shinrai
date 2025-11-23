@@ -75,6 +75,10 @@ model Workflow{
  nodes Node[]
  connections Connection[]
  userId String
+ publicKey String
+ privateKey String
+ address String
+ keypair String
  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
 }
@@ -82,10 +86,14 @@ model Workflow{
 enum NodeType {
  INITIAL
  MANUAL_TRIGGER
+ GOOGLE_FORM_TRIGGER
  HTTP_REQUEST
+ FILE_UPLOAD
+ OPEN_AGENT_NODE
+ OPENROUTER_NODE
+ TELEGRAM_TRIGGER 
  WALRUS_NODE_STORAGE
 }
-
 
 
 model Node {
@@ -96,10 +104,10 @@ model Node {
   data Json @default("{}")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   outputConnection Connection[] @relation("FromNode")
   inputConnection Connection[] @relation("ToNode")
-  
+
   workflowId String
   workflow Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
 
@@ -107,20 +115,20 @@ model Node {
 
 model Connection {
   id String @id @default(cuid())
-  
+
   fromNodeId String
   fromNode Node @relation("FromNode",fields: [fromNodeId], references: [id], onDelete: Cascade)
   toNodeId String
   toNode Node @relation("ToNode",fields: [toNodeId], references: [id], onDelete: Cascade)
-  
+
   fromOutput String @default("main")
   toInput String @default("main")
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   workflowId String
   workflow Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
-  
+
   @@unique([ fromNodeId, toNodeId, fromOutput, toInput ])
 }

@@ -5,6 +5,9 @@ import { DatabaseIcon } from "lucide-react";
 import { memo, useState } from "react";
 import { BaseExecutionNode } from "@/features/executions/components/base-execution-node";
 import { FormType, WalrusStorageDialog } from "./dialog";
+import { useNodeStatus } from "../../hooks/use-node-status";
+import { WALRUS_NODE_CHANNEL_NAME } from "@/inngest/channels/walrus-node";
+import { fetchWalrusStorageRealtimeToken } from "./actions";
 
 type WalrusStorageNodeData = {
   inputMode?: "file" | "variable" | "url";
@@ -21,7 +24,12 @@ type WalrusStorageNodeType = Node<WalrusStorageNodeData>;
 export const WalrusStorageNode = memo((props: NodeProps<WalrusStorageNodeType>) => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const {setNodes} = useReactFlow();
-  const nodeStatus = "initial";
+  const nodeStatus = useNodeStatus({
+    nodeId: props.id,
+    channel: WALRUS_NODE_CHANNEL_NAME,
+    topic: "status",
+    refreshToken: fetchWalrusStorageRealtimeToken,
+  });
 
   const handleSubmit = (values: FormType) => {
     setNodes((nodes) => nodes.map((node) => {

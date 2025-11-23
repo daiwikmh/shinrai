@@ -38,6 +38,15 @@ export const EditorBreadcrumbs = ({ workflowId }: { workflowId: string }) => {
   );
 };
 
+export const EditorPublicKey = ({ workflowId }: { workflowId: string }) => {
+  const { data: workflow } = useSuspenseWorkflow(workflowId);
+  return (
+    <div className="flex items-center text-primary" >
+      {workflow.address}
+    </div>
+  );
+}
+
 export const EditorInputName = ({ workflowId }: { workflowId: string }) => {
   const { data: workflow } = useSuspenseWorkflow(workflowId);
   const UpdateName = useUpdateWorkflowName();
@@ -139,6 +148,7 @@ export const EditorHeader = ({ workflowId }: { workflowId: string }) => {
       <SidebarTrigger />
       <div className="flex flex-row items-center justify-between gap-x-4 w-full">
         <EditorBreadcrumbs workflowId={workflowId} />
+        <EditorPublicKey workflowId={workflowId} />
         <EditorSaveButton workflowId={workflowId} />
       </div>
     </header>

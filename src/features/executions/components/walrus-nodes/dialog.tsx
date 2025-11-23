@@ -28,7 +28,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -80,7 +80,10 @@ export const WalrusStorageDialog = ({
     },
   });
 
-  const watchInputMode = form.watch("inputMode");
+  const watchInputMode = useWatch({
+    control: form.control,
+    name: "inputMode"
+  })  || "myInputMode";
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

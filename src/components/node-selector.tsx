@@ -3,9 +3,12 @@
 import { createId } from "@paralleldrive/cuid2"
 import { useReactFlow } from "@xyflow/react";
 import {
-  GlobeIcon,
   SquareMousePointerIcon,
-  DatabaseIcon
+  DatabaseIcon,
+  Globe2Icon,
+  UploadCloudIcon,
+  BotIcon,
+  MessageCircleIcon
 } from "lucide-react";
 import { useCallback } from "react";
 import { toast } from "sonner";
@@ -34,6 +37,18 @@ const triggerNodes: NodeTypeOption[] = [
     label: "Manual Trigger",
     description: "Runs the flow on clicking a button. Good for getting started quickly",
     icon: SquareMousePointerIcon
+  },
+  {
+    type: NodeType.GOOGLE_FORM_TRIGGER,
+    label: "Google Form Trigger",
+    description: "Runs the flow when a Google Form is submitted",
+    icon: "/logo/googleform.png"
+  },
+  {
+    type: NodeType.TELEGRAM_TRIGGER,
+    label: "Telegram Trigger",
+    description: "Runs the flow when a Telegram message is received",
+    icon: "/logo/telegram.png"
   }
 ]
 
@@ -42,7 +57,25 @@ const executionNodes: NodeTypeOption[] = [
     type: NodeType.HTTP_REQUEST,
     label: "Http Request",
     description: "Makes an http request",
-    icon: GlobeIcon
+    icon: Globe2Icon
+  },
+  {
+    type: NodeType.OPENROUTER_NODE,
+    label: "OpenRouter Node",
+    description: "Makes an request to OpenRouter api for llm chat",
+    icon: "/logo/openrouter.png"
+  },
+  {
+    type: NodeType.OPEN_AGENT_NODE,
+    label: "OpenAgent Node",
+    description: "Makes an request to OpenRouter api for llm with vercel agent and tools",
+    icon: "/logo/agent.png"
+  },
+  {
+    type: NodeType.FILE_UPLOAD,
+    label: "File Upload",
+    description: "Uploads a file to a storage service",
+    icon: UploadCloudIcon
   }
 ]
 
@@ -128,7 +161,9 @@ export function NodeSelector({
                     <Image 
                     src={Icon} 
                     alt={nodeType.label} 
-                    className="size-5 object-contain rounded-sm" 
+                    width={500}
+                    height={500}
+                    className="size-7 object-contain rounded-sm" 
                     />)
                     : (<Icon className="size-5" />
                     )}
@@ -160,6 +195,8 @@ export function NodeSelector({
                     <Image 
                     src={Icon} 
                     alt={nodeType.label} 
+                    width={500}
+                    height={500}
                     className="size-5 object-contain rounded-sm" 
                     />)
                     : (<Icon className="size-5" />
