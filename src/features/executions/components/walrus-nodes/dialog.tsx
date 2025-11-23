@@ -132,7 +132,6 @@ export const WalrusStorageDialog = ({
       });
 
       form.reset({
-        // Only use defaultFileDataSource when there's no connected file
         fileDataSource: connectedFileName ? connectedFileName : (defaultFileDataSource || ""),
         epochs: defaultEpochs || 5,
         deletable: defaultDeletable ?? true,

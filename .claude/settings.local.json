@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(bun add:*)",
-      "WebSearch"
+      "WebSearch",
+      "WebFetch(domain:sdk.mystenlabs.com)"
     ],
     "deny": [],
     "ask": []
