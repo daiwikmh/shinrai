@@ -29,6 +29,7 @@ export async function POST(request: NextRequest) {
       workflowId,
       initialData: {
         googleForm: formData,
+        workflowId: workflowId,
       },
     });
     return NextResponse.json(

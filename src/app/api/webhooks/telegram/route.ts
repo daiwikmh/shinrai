@@ -54,6 +54,7 @@ export async function POST(request: NextRequest) {
       workflowId,
       initialData: {
         telegram: telegramData,
+        workflowId: workflowId,
       },
     });
     

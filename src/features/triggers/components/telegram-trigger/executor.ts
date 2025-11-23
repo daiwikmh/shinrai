@@ -2,7 +2,7 @@ import type { NodeExecutor } from "@/features/executions/type";
 import { telegramTriggerChannel } from "@/inngest/channels/telegram-trigger";
 
 type TelegramTriggerData = {
-  botToken: string;
+  botToken?: string;
 };
 
 type initialTelegramData = {

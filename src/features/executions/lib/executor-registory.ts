@@ -9,6 +9,7 @@ import { openRouterExecutor } from "../components/open-router-node/executor";
 import { fileUploadExecutor } from "../components/file-upload/executor";
 import { walrusStorageExecutor } from "../components/walrus-nodes/executor";
 
+
 export const executorRegistory: Record<NodeType, NodeExecutor> = {
   [NodeType.MANUAL_TRIGGER]: manualTriggerExecutor,
   [NodeType.INITIAL]: manualTriggerExecutor,
