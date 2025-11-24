@@ -122,9 +122,7 @@ export const walrusStorageExecutor: NodeExecutor<WalrusStorageData> = async ({
 
       // 2. RECONSTRUCT THE SIGNER
       const secretKey = workflow.privateKey
-      console.log(secretKey)
       const signer = Ed25519Keypair.fromSecretKey(secretKey);
-      console.log("Signer reconstructed:", signer.getPublicKey().toSuiAddress());
 
       // 3. Download & Prepare
       const fileName = `file.${telegramFile.extension}`;

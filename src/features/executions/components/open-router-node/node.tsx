@@ -4,16 +4,16 @@ import { type Node, type NodeProps, useReactFlow } from "@xyflow/react";
 import { Globe2Icon } from "lucide-react";
 import { memo, useState } from "react";
 import { BaseExecutionNode } from "@/features/executions/components/base-execution-node";
-import { OpenRouterDialog, OpenRouterFormValues } from "./dialog";
+import { AVAILABLE_MODELS, OpenRouterDialog, OpenRouterFormValues } from "./dialog";
 import { useNodeStatus } from "../../hooks/use-node-status";
 import { fetchOpenRouterRealtimeToken } from "./actions";
 import { OPENROUTER_NODE_CHANNEL_NAME } from "@/inngest/channels/openrouter-node";
 
 type OpenRouterNodeData = {
   variableName?: string;
-  endpoint?: string;
-  method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
-  body?: string;
+  model?: string;
+  systemPrompt?: string;
+  userPrompt?: string;
 };
 
 type OpenRouterNodeType = Node<OpenRouterNodeData>;
@@ -48,8 +48,8 @@ export const OpenRouterNode = memo((props: NodeProps<OpenRouterNodeType>) => {
   };
 
   const nodeData = props.data;
-  const description = nodeData?.endpoint
-    ? `${nodeData.method || "GET"}: ${nodeData.endpoint}`
+  const description = nodeData?.userPrompt
+    ? `${nodeData.userPrompt}`
     : "Not Configured";
 
   return (
