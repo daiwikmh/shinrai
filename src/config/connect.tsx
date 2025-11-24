@@ -14,4 +14,9 @@ export const client = new SuiJsonRpcClient({
 				max: 1_000,
 			},
 		},
-	}),);
+		
+		storageNodeClientOptions: {
+			timeout: 60_000,
+		}
+	}
+));

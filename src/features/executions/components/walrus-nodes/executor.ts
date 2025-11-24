@@ -10,6 +10,8 @@ import prisma from "@/lib/db";
 import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
 import { fromBase64, fromHex } from "@mysten/utils";
 
+// WAL token type on Sui testnet
+const WAL_TOKEN_TYPE = "0x8270feb7375eee355e64fdb69c50abb6b5f9393a722883c1cf45f8e26048810a::wal::WAL";
 
 function getContentTypeFromExtension(extension: string): string {
   const contentTypeMap: Record<string, string> = {
@@ -111,12 +113,19 @@ export const walrusStorageExecutor: NodeExecutor<WalrusStorageData> = async ({
         throw new NonRetriableError("Workflow wallet/keypair not found in DB.");
       }
 
+
+      const walrusBalance = await client.getBalance({
+        owner: workflow.address,
+        coinType: WAL_TOKEN_TYPE,
+      });
+      console.log("Walbase WAL balance:", walrusBalance);
+
       // 2. RECONSTRUCT THE SIGNER
-      // This turns your DB string back into a functional object
       const secretKey = workflow.privateKey
       console.log(secretKey)
       const signer = Ed25519Keypair.fromSecretKey(secretKey);
-      
+      console.log("Signer reconstructed:", signer.getPublicKey().toSuiAddress());
+
       // 3. Download & Prepare
       const fileName = `file.${telegramFile.extension}`;
       const contentType = getContentTypeFromExtension(telegramFile.extension);
@@ -131,12 +140,12 @@ export const walrusStorageExecutor: NodeExecutor<WalrusStorageData> = async ({
         tags: { 'content-type': contentType }
       });
 
-      // 4. Upload using the reconstructed signer
+      // 4. Upload to Walrus using the reconstructed signer
       const uploadResults = await client.walrus.writeFiles({
         files: [upload],
-        epochs: data.epochs || 1,
+        epochs:1,
         deletable: true,
-        signer: signer, 
+        signer: signer,
       });
 
       const uploadResult = uploadResults[0];
