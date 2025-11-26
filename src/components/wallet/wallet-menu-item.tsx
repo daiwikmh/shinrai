@@ -1,12 +1,14 @@
 "use client";
 
-import { WalletStandardAdapterProvider } from "@mysten/wallet-standard";
 import Image from "next/image";
 
-interface WalletMenuItemProps {
-  wallet: WalletStandardAdapterProvider;
-  onConnect: (wallet: WalletStandardAdapterProvider) => void;
-}
+type WalletMenuItemProps = {
+  wallet: {
+    name: string;
+    icon?: string;
+  };
+  onConnect: (wallet: { name: string; icon?: string }) => void;
+};
 
 export function WalletMenuItem({ wallet, onConnect }: WalletMenuItemProps) {
   return (

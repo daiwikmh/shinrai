@@ -216,7 +216,7 @@ const AppSidebar = () => {
                           <WalletMenuItem
                             key={`${wallet.name}-${index}`}
                             wallet={wallet}
-                            onConnect={(w) => connect({ wallet: w })}
+                            onConnect={(w) => connect({ wallet })}
                           />
                         ))}
                       </>
