@@ -3,7 +3,8 @@
     "allow": [
       "Bash(bun add:*)",
       "WebSearch",
-      "WebFetch(domain:sdk.mystenlabs.com)"
+      "WebFetch(domain:sdk.mystenlabs.com)",
+      "Bash(bun run build:*)"
     ],
     "deny": [],
     "ask": []
