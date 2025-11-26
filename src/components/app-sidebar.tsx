@@ -243,8 +243,7 @@ const AppSidebar = () => {
                         </div>
                       </div>
                       <DisconnectButton
-                        wallet={selectedWallet}
-                        onDisconnect={() => disconnect()}
+                       
                       />
                     </>
                   )
