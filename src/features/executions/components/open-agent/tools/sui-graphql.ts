@@ -44,12 +44,12 @@ export const queryAddressTool = tool({
       });
 
       return {
-        success: true,
-        data: result.data?.address,
+        success: true as const,
+        data: result.data?.address ?? null,
       };
     } catch (error) {
       return {
-        success: false,
+        success: false as const,
         error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
@@ -94,12 +94,12 @@ export const queryObjectTool = tool({
       });
 
       return {
-        success: true,
-        data: result.data?.object,
+        success: true as const,
+        data: result.data?.object ?? null,
       };
     } catch (error) {
       return {
-        success: false,
+        success: false as const,
         error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
@@ -153,12 +153,12 @@ export const queryTransactionTool = tool({
       });
 
       return {
-        success: true,
-        data: result.data?.transactionBlock,
+        success: true as const,
+        data: result.data?.transactionBlock ?? null,
       };
     } catch (error) {
       return {
-        success: false,
+        success: false as const,
         error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
@@ -201,12 +201,12 @@ export const queryCoinBalanceTool = tool({
       });
 
       return {
-        success: true,
-        data: result.data?.address,
+        success: true as const,
+        data: result.data?.address ?? null,
       };
     } catch (error) {
       return {
-        success: false,
+        success: false as const,
         error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
@@ -262,12 +262,12 @@ export const queryEventsTool = tool({
       });
 
       return {
-        success: true,
-        data: result.data?.events,
+        success: true as const,
+        data: result.data?.events ?? null,
       };
     } catch (error) {
       return {
-        success: false,
+        success: false as const,
         error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
@@ -293,12 +293,12 @@ export const getChainIdentifierTool = tool({
       });
 
       return {
-        success: true,
-        chainIdentifier: result.data?.chainIdentifier,
+        success: true as const,
+        chainIdentifier: result.data?.chainIdentifier ?? null,
       };
     } catch (error) {
       return {
-        success: false,
+        success: false as const,
         error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
@@ -333,18 +333,18 @@ export const customGraphQLQueryTool = tool({
 
       if (result.errors) {
         return {
-          success: false,
+          success: false as const,
           errors: result.errors,
         };
       }
 
       return {
-        success: true,
-        data: result.data,
+        success: true as const,
+        data: result.data ?? null,
       };
     } catch (error) {
       return {
-        success: false,
+        success: false as const,
         error: error instanceof Error ? error.message : 'Unknown error',
       };
     }

@@ -82,7 +82,6 @@ You have access to the workflow context and can use Sui blockchain tools to perf
 Always provide clear, actionable responses.
 ${data.enableSuiTools ? `The workflow wallet address is: ${workflow.address}` : ''}`,
           prompt: fullPrompt,
-          maxSteps: data.maxSteps ?? 5,
 
         }
 

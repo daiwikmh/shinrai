@@ -38,7 +38,7 @@ export const transferObjectsTool = tool({
       });
 
       return {
-        success: true,
+        success: true as const,
         digest: result.digest,
         recipient,
         amount,
@@ -46,7 +46,7 @@ export const transferObjectsTool = tool({
       };
     } catch (error) {
       return {
-        success: false,
+        success: false as const,
         error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
@@ -77,14 +77,14 @@ export const splitCoinsTool = tool({
       });
 
       return {
-        success: true,
+        success: true as const,
         digest: result.digest,
         amounts,
         sourceObject,
       };
     } catch (error) {
       return {
-        success: false,
+        success: false as const,
         error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
@@ -117,14 +117,14 @@ export const mergeCoinsTool = tool({
       });
 
       return {
-        success: true,
+        success: true as const,
         digest: result.digest,
         destinationCoin,
         sourceCoins,
       };
     } catch (error) {
       return {
-        success: false,
+        success: false as const,
         error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
@@ -164,7 +164,7 @@ export const moveCallTool = tool({
       });
 
       return {
-        success: true,
+        success: true as const,
         digest: result.digest,
         target,
         arguments: args,
@@ -172,7 +172,7 @@ export const moveCallTool = tool({
       };
     } catch (error) {
       return {
-        success: false,
+        success: false as const,
         error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
@@ -215,14 +215,14 @@ export const batchTransferTool = tool({
       });
 
       return {
-        success: true,
+        success: true as const,
         digest: result.digest,
         transferCount: transfers.length,
         transfers,
       };
     } catch (error) {
       return {
-        success: false,
+        success: false as const,
         error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
@@ -251,12 +251,12 @@ export const getTransactionTool = tool({
       });
 
       return {
-        success: true,
+        success: true as const,
         transaction: txDetails,
       };
     } catch (error) {
       return {
-        success: false,
+        success: false as const,
         error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
