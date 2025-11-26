@@ -21,6 +21,7 @@ type OpenAgentData = {
   enableSuiTools?: boolean;
   systemPrompt?: string;
   maxSteps?: number;
+  maxTokens?: number;
 };
 
 export const openAgentExecutor: NodeExecutor<OpenAgentData> = async ({
