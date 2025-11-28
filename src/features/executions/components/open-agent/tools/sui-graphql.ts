@@ -13,7 +13,7 @@ const gqlClient = new SuiGraphQLClient({
  */
 export const queryAddressTool = tool({
   description: 'Query detailed information about a Sui address including balances, objects, and domain name',
-  parameters: z.object({
+  inputSchema: z.object({
     address: z.string().describe('The Sui address to query (0x...)'),
   }),
   execute: async ({ address }) => {
@@ -61,7 +61,7 @@ export const queryAddressTool = tool({
  */
 export const queryObjectTool = tool({
   description: 'Get detailed information about a specific object on Sui',
-  parameters: z.object({
+  inputSchema: z.object({
     objectId: z.string().describe('The object ID to query'),
   }),
   execute: async ({ objectId }) => {
@@ -111,7 +111,7 @@ export const queryObjectTool = tool({
  */
 export const queryTransactionTool = tool({
   description: 'Get detailed information about a transaction by its digest',
-  parameters: z.object({
+  inputSchema: z.object({
     digest: z.string().describe('The transaction digest'),
   }),
   execute: async ({ digest }) => {
@@ -170,7 +170,7 @@ export const queryTransactionTool = tool({
  */
 export const queryCoinBalanceTool = tool({
   description: 'Query the balance of a specific coin type for an address',
-  parameters: z.object({
+  inputSchema: z.object({
     address: z.string().describe('The Sui address to query'),
     coinType: z.string().optional().describe('The coin type (e.g., 0x2::sui::SUI). Defaults to SUI.'),
   }),
@@ -218,7 +218,7 @@ export const queryCoinBalanceTool = tool({
  */
 export const queryEventsTool = tool({
   description: 'Query events by event type or sender',
-  parameters: z.object({
+  inputSchema: z.object({
     eventType: z.string().optional().describe('The event type to filter (e.g., 0x2::sui::Transfer)'),
     sender: z.string().optional().describe('Filter by sender address'),
     limit: z.number().optional().default(10).describe('Maximum number of events to return'),
@@ -279,7 +279,7 @@ export const queryEventsTool = tool({
  */
 export const getChainIdentifierTool = tool({
   description: 'Get the Sui network chain identifier',
-  parameters: z.object({}),
+  inputSchema: z.object({}),
   execute: async () => {
     try {
       const query = graphql(`
@@ -310,9 +310,9 @@ export const getChainIdentifierTool = tool({
  */
 export const customGraphQLQueryTool = tool({
   description: 'Execute a custom GraphQL query against the Sui network',
-  parameters: z.object({
+  inputSchema: z.object({
     query: z.string().describe('The GraphQL query string'),
-    variables: z.record(z.unknown()).optional().describe('Variables for the query (key-value pairs)'),
+    variables: z.record(z.any(),z.any()).optional().describe('Variables for the query (key-value pairs)'),
   }),
   execute: async ({ query: queryString, variables }) => {
     try {

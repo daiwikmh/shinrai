@@ -9,7 +9,7 @@ import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
  */
 export const transferObjectsTool = tool({
   description: 'Transfer SUI coins or objects to a recipient address on Sui blockchain',
-  parameters: z.object({
+  inputSchema: z.object({
     recipient: z.string().describe('The recipient Sui address (0x...)'),
     amount: z.number().optional().describe('Amount of SUI to transfer (in MIST, 1 SUI = 1_000_000_000 MIST)'),
     objectIds: z.array(z.string()).optional().describe('Array of object IDs to transfer'),
@@ -58,7 +58,7 @@ export const transferObjectsTool = tool({
  */
 export const splitCoinsTool = tool({
   description: 'Split a coin into multiple smaller coins with specified amounts',
-  parameters: z.object({
+  inputSchema: z.object({
     amounts: z.array(z.number()).describe('Array of amounts to split (in MIST)'),
     sourceObject: z.string().optional().describe('Source coin object ID (defaults to gas coin)'),
     signerPrivateKey: z.string().describe('The private key of the signer'),
@@ -96,7 +96,7 @@ export const splitCoinsTool = tool({
  */
 export const mergeCoinsTool = tool({
   description: 'Merge multiple coins into a single destination coin',
-  parameters: z.object({
+  inputSchema: z.object({
     destinationCoin: z.string().describe('The destination coin object ID'),
     sourceCoins: z.array(z.string()).describe('Array of source coin object IDs to merge'),
     signerPrivateKey: z.string().describe('The private key of the signer'),
@@ -136,7 +136,7 @@ export const mergeCoinsTool = tool({
  */
 export const moveCallTool = tool({
   description: 'Execute a Move function call on the Sui blockchain',
-  parameters: z.object({
+  inputSchema: z.object({
     target: z.string().describe('The Move function target (package::module::function)'),
     arguments: z.array(z.union([z.string(), z.number(), z.boolean()])).optional().describe('Array of arguments for the function (strings, numbers, or booleans)'),
     typeArguments: z.array(z.string()).optional().describe('Array of type arguments'),
@@ -153,7 +153,13 @@ export const moveCallTool = tool({
           if (typeof arg === 'string' && arg.startsWith('0x')) {
             return tx.object(arg);
           }
-          return tx.pure(arg);
+          if (typeof arg === 'string') {
+            return tx.pure.string(arg);
+          }
+          if (typeof arg === 'number') {
+            return tx.pure.u64(arg);
+          }
+          return tx.pure.bool(arg);
         }) || [],
         typeArguments: typeArguments || [],
       });
@@ -184,7 +190,7 @@ export const moveCallTool = tool({
  */
 export const batchTransferTool = tool({
   description: 'Transfer SUI to multiple recipients in a single transaction',
-  parameters: z.object({
+  inputSchema: z.object({
     transfers: z.array(
       z.object({
         to: z.string().describe('Recipient address'),
@@ -234,7 +240,7 @@ export const batchTransferTool = tool({
  */
 export const getTransactionTool = tool({
   description: 'Get details of a transaction by its digest',
-  parameters: z.object({
+  inputSchema: z.object({
     digest: z.string().describe('The transaction digest'),
   }),
   execute: async ({ digest }) => {
