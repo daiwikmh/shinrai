@@ -43,13 +43,19 @@ export const openRouterExecutor: NodeExecutor<OpenRouterData> = async ({
     if (!data.model) {
       throw new NonRetriableError("Model is required");
     }
+
+    const systemPromptTemplate = Handlebars.compile(data.systemPrompt || "");
+    const userPromptTemplate = Handlebars.compile(data.userPrompt || "");
+
+    const renderedSystemPrompt = systemPromptTemplate(context);
+    const renderedUserPrompt = userPromptTemplate(context);
    const { steps } = await step.ai.wrap(
      "openRouter-generate-text",
      generateText,
      {
-       model: openRouter.chat("text-davinci-002"),
-       system: data.systemPrompt,
-       prompt: data.userPrompt || "",
+       model: openRouter.chat(data.model||"openai/gpt-4o-mini"),
+       system: renderedSystemPrompt,
+       prompt: renderedUserPrompt,
        experimental_telemetry:{
          isEnabled:true,
          recordInputs:true,

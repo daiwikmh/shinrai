@@ -6,9 +6,7 @@ import { ReactNode } from "react";
 
 // Sui network configuration
 const networks = {
-  mainnet: { url: getFullnodeUrl("mainnet") },
   testnet: { url: getFullnodeUrl("testnet") },
-  devnet: { url: getFullnodeUrl("devnet") },
 };
 
 export function SuiProvider({ children }: { children: ReactNode }) {

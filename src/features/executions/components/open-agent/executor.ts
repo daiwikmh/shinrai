@@ -1,9 +1,11 @@
 import type { NodeExecutor } from "@/features/executions/type";
 import { NonRetriableError } from "inngest";
-import ky, { type Options as KyOptions } from "ky";
-import Handlebars from "handlebars";
-import { httpRequestChannel } from "@/inngest/channels/http-request";
 import { openAgentChannel } from "@/inngest/channels/open-agent";
+import { createOpenRouter } from "@openrouter/ai-sdk-provider";
+import { generateText } from "ai";
+import { allSuiTools } from "./tools";
+import prisma from "@/lib/db";
+import Handlebars from "handlebars";
 
 Handlebars.registerHelper("json", (context) => {
   const jsonString = JSON.stringify(context, null, 2);
@@ -11,12 +13,17 @@ Handlebars.registerHelper("json", (context) => {
   return safeString;
 });
 
+
 type OpenAgentData = {
   variableName?: string;
-  endpoint?: string;
-  method?: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
-  body?: string;
+  prompt?: string;
+  model?: string;
+  enableSuiTools?: boolean;
+  systemPrompt?: string;
+  maxSteps?: number;
+  maxTokens?: number;
 };
+
 export const openAgentExecutor: NodeExecutor<OpenAgentData> = async ({
   data,
   nodeId,
@@ -24,45 +31,108 @@ export const openAgentExecutor: NodeExecutor<OpenAgentData> = async ({
   step,
   publish,
 }) => {
-  // Implement the logic for http-request execution here
   await publish(
     openAgentChannel().status({
       nodeId,
       status: "loading",
-    }),
+    })
   );
 
   try {
-    const {steps} = await step.run("open-agent", async () => {
-      
+      // Validate required fields
+      if (!data.prompt) {
+        throw new NonRetriableError("OpenAgentNode: Prompt is missing");
+      }
+      if (!data.variableName) {
+        throw new NonRetriableError("OpenAgentNode: Variable name is missing");
+      }
 
+      // Get workflow for signer access
+      const workflowId = (context as any).workflowId;
+      const workflow = await prisma.workflow.findUnique({
+        where: { id: workflowId },
+      });
+
+      if (!workflow) {
+        throw new NonRetriableError("Workflow not found");
+      }
+
+      const openRouter = createOpenRouter({
+        apiKey: process.env.OPENROUTER_API_KEY,
+      })
+
+      // Prepare tools with workflow signer
+      const tools = data.enableSuiTools ? allSuiTools : undefined;
+      const userPrompt = Handlebars.compile(data.prompt || "")(context);
+      // Build context summary for the agent
+      const contextSummary = JSON.stringify(context, null, 2);
+      const fullPrompt = `Context from previous workflow steps:
+${contextSummary}
+
+User Task:
+${userPrompt}`
+      // Execute AI agent with step.ai.wrap
+      const aiResult = await step.ai.wrap(
+        "ai-agent-execution",
+        generateText,{
+          model: openRouter.chat(data.model || "deepseek/deepseek-chat-v3-0324:free"),
+          tools,
+          system: data.systemPrompt || `You are a helpful AI agent executing within a workflow.
+You have access to the workflow context and can use Sui blockchain tools to perform transactions.
+Always provide clear, actionable responses.
+${data.enableSuiTools ? `The workflow wallet address is: ${workflow.address}` : ''}`,
+          prompt: fullPrompt,
+
+        }
+
+      );
+
+      // Prepare response payload
       const responsePayload = {
-        httpResponse: {
-          status: response.status,
-          statusText: response.statusText,
-          body: responseData,
+        agentResponse: {
+          text: aiResult.text,
+          finishReason: aiResult.finishReason,
+          usage: {
+            promptTokens: aiResult.usage.inputTokens,
+            completionTokens: aiResult.usage.outputTokens,
+            totalTokens: aiResult.usage.totalTokens,
+          },
+          toolCalls: aiResult.steps.flatMap(
+            (step) =>
+              step.toolCalls?.map((call) => ({
+                toolName: call.toolName,
+                args: call.input,
+                result: aiResult.steps
+                  .find((s) => s.toolResults)
+                  ?.toolResults?.find((r) => r.toolCallId === call.toolCallId)
+                  ?.output,
+              })) || []
+          ),
+          steps: aiResult.steps.length,
+          model: data.model || "deepseek/deepseek-chat-v3-0324:free",
         },
       };
 
-      
-    });
+      await publish(
+        openAgentChannel().status({
+          nodeId,
+          status: "success",
+        })
+      );
+      // Return context with agent response
+      return {
+        ...context,
+        [data.variableName]: responsePayload,
+      };
+    
 
-    await publish(
-      httpRequestChannel().status({
-        nodeId,
-        status: "success",
-      }),
-    );
-    return {
-      ...context,
-      [data.variableName]: responsePayload,
-    };
+
   } catch (error) {
     await publish(
       openAgentChannel().status({
         nodeId,
         status: "error",
-      }),
+      })
     );
     throw error;
   }

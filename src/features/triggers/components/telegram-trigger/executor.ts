@@ -33,7 +33,6 @@ export const telegramExecutor: NodeExecutor<TelegramTriggerData> = async ({
     // 2. Execute Logic: Process Media and Construct Data
     const result = await step.run("process-telegram-payload", async () => {
       const { botToken } = data;
-      // context comes from the Webhook payload we defined earlier
       const { fileId, mediaType, content, chatId, username } = context.telegram as initialTelegramData;
 
       let fileUrl: string | null = null;

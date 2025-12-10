@@ -32,8 +32,7 @@ import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 
 export const AVAILABLE_MODELS = [
-  "gpt-3.5-turbo", 
-  "gpt-4"];
+  "deepseek/deepseek-chat-v3-0324:free",];
 
 // Re-using the schema definition from the section above
 const openRouterSchema = z.object({

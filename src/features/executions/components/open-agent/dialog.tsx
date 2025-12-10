@@ -20,77 +20,159 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox"; // Added Checkbox import
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { AVAILABLE_MODELS } from "../open-router-node/dialog";
 
-// Re-using the schema definition from the section above
-export const AVAILABLE_TOOLS = [
-  "send_email",
-  "query_prisma",
-  "fetch_data",
-  "schedule_inngest_function",
+// Available AI Models from OpenRouter
+export const AvailableModelsArray = [
+  { value: "openai/gpt-4o", label: "GPT-4o (OpenAI)", provider: "OpenAI" },
+  { value: "openai/gpt-4o-mini", label: "GPT-4o Mini (OpenAI)", provider: "OpenAI" },
+  { value: "openai/gpt-4-turbo", label: "GPT-4 Turbo (OpenAI)", provider: "OpenAI" },
+  { value: "anthropic/claude-3.5-sonnet", label: "Claude 3.5 Sonnet (Anthropic)", provider: "Anthropic" },
+  { value: "anthropic/claude-3-opus", label: "Claude 3 Opus (Anthropic)", provider: "Anthropic" },
+  { value: "deepseek/deepseek-chat-v3-0324", label: "deepseek/deepseek-chat-v3-0324", provider: "deepseek" },
+  { value: "google/gemini-pro-1.5", label: "Gemini Pro 1.5 (Google)", provider: "Google" },
+  { value: "google/gemini-flash-1.5", label: "Gemini Flash 1.5 (Google)", provider: "Google" },
+  { value: "meta-llama/llama-3.1-405b-instruct", label: "Llama 3.1 405B (Meta)", provider: "Meta" },
+  { value: "meta-llama/llama-3.1-70b-instruct", label: "Llama 3.1 70B (Meta)", provider: "Meta" },
+  { value: "mistralai/mistral-large", label: "Mistral Large (Mistral AI)", provider: "Mistral" },
+  { value: "qwen/qwen-2.5-72b-instruct", label: "Qwen 2.5 72B (Alibaba)", provider: "Qwen" },
 ] as const;
 
-const agentNodeSchema = z.object({
+// Available Sui Blockchain Tools
+export const AvailableToolsArray = [
+  {
+    value: "transferObjects",
+    label: "Transfer Objects",
+    description: "Transfer SUI coins or objects to recipients",
+    category: "Transactions"
+  },
+  {
+    value: "splitCoins",
+    label: "Split Coins",
+    description: "Split coins into smaller amounts",
+    category: "Transactions"
+  },
+  {
+    value: "mergeCoins",
+    label: "Merge Coins",
+    description: "Merge multiple coins into one",
+    category: "Transactions"
+  },
+  {
+    value: "moveCall",
+    label: "Move Call",
+    description: "Execute Move smart contract functions",
+    category: "Transactions"
+  },
+  {
+    value: "batchTransfer",
+    label: "Batch Transfer",
+    description: "Transfer to multiple recipients at once",
+    category: "Transactions"
+  },
+  {
+    value: "queryAddress",
+    label: "Query Address",
+    description: "Get address information and balances",
+    category: "Queries"
+  },
+  {
+    value: "queryObject",
+    label: "Query Object",
+    description: "Get object details by ID",
+    category: "Queries"
+  },
+  {
+    value: "queryCoinBalance",
+    label: "Query Coin Balance",
+    description: "Check specific coin type balances",
+    category: "Queries"
+  },
+  {
+    value: "queryTransaction",
+    label: "Query Transaction",
+    description: "Get transaction details via GraphQL",
+    category: "Queries"
+  },
+  {
+    value: "queryEvents",
+    label: "Query Events",
+    description: "Search blockchain events",
+    category: "Queries"
+  },
+  {
+    value: "customGraphQLQuery",
+    label: "Custom GraphQL",
+    description: "Execute custom GraphQL queries",
+    category: "Queries"
+  },
+] as const;
+
+const formSchema = z.object({
   variableName: z.string()
     .min(1, "Variable name is required")
     .regex(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/, {
-      message: "Must be a valid variable name (e.g., 'agent_analysis')"}),
-  model: z.enum(AVAILABLE_MODELS),
-  systemPrompt: z.string()
-    .min(10, "The system prompt must be at least 10 characters.")
-    .max(8192, "System prompt is too long."),
-  userPrompt: z.string()
-    .min(10, "The user prompt must be at least 10 characters.")
-    .max(8192, "User prompt is too long."),
-  tools: z.array(z.enum(AVAILABLE_TOOLS))
-    .min(0, { message: "Select at least one tool or keep it empty." })
-    .default([]),
+      message: "Variable name must start with a letter or underscore and contain only letters, numbers, or underscores"
+    }),
+  prompt: z.string()
+    .min(1, { message: "Prompt is required" }),
+  enableSuiTools: z.boolean(),
+  systemPrompt: z.string().optional(),
+  maxRetries: z.number().min(1).max(20),
+  maxTokens: z.number().min(256).max(8192),
 });
 
-export type OpenAgentFormValues = z.infer<typeof agentNodeSchema>;
+export type OpenAgentFormValues = z.infer<typeof formSchema>;
 
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (values: OpenAgentFormValues) => void;
-  defaultValues: Partial<OpenAgentFormValues>;
-};
+  onSubmit: (values: z.infer<typeof formSchema>) => void;
+  defaultValues?: Partial<OpenAgentFormValues>;
+}
 
-
-export const OpenAgentDialog = ({ 
-  open, 
+export const OpenAgentDialog = ({
+  open,
   onOpenChange,
   onSubmit,
   defaultValues = {}
 }: Props) => {
   const form = useForm<OpenAgentFormValues>({
-    resolver: zodResolver(agentNodeSchema),
-    defaultValues: {
-      variableName: defaultValues.variableName || "agentResult",
-      model: defaultValues.model || AVAILABLE_MODELS[0],
-      systemPrompt: defaultValues.systemPrompt || "",
-      userPrompt: defaultValues.userPrompt || "",
-      tools: defaultValues.tools || [],
-    },
-  });
-  
+  resolver: zodResolver(formSchema),
+  defaultValues: {
+    variableName: defaultValues.variableName ?? "",
+    prompt: defaultValues.prompt ?? "",
+    enableSuiTools: defaultValues.enableSuiTools ?? false,
+    systemPrompt: defaultValues.systemPrompt ?? "",
+    maxRetries: defaultValues.maxRetries ?? 5,
+    maxTokens: defaultValues.maxTokens ?? 4096,
+  },
+});
+
+
   const watchVariableName = useWatch({
     control: form.control,
     name: "variableName"
-  }) || "agentResult";
+  }) || "aiAgent";
 
-  const handleSubmit = (values: OpenAgentFormValues) => {
+  const watchEnableSuiTools = useWatch({
+    control: form.control,
+    name: "enableSuiTools"
+  });
+
+  const handleSubmit = (values: z.infer<typeof formSchema>) => {
     onSubmit(values);
     onOpenChange(false);
   };
@@ -98,164 +180,177 @@ export const OpenAgentDialog = ({
   useEffect(() => {
     if (open) {
       form.reset({
-        variableName: defaultValues.variableName || "agentResult",
-        model: defaultValues.model || AVAILABLE_MODELS[0],
-        systemPrompt: defaultValues.systemPrompt || "",
-        userPrompt: defaultValues.userPrompt || "",
-        tools: defaultValues.tools || [],
+        variableName: defaultValues.variableName ?? "",
+        prompt: defaultValues.prompt ?? "",
+        enableSuiTools: defaultValues.enableSuiTools ?? false,
+        systemPrompt: defaultValues.systemPrompt ?? "",
+        maxRetries: defaultValues.maxRetries ?? 5,
+        maxTokens: defaultValues.maxTokens ?? 4096,
       });
     }
   }, [form, open, defaultValues]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px] md:max-w-[700px]">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>AI Agent Node (Tools Enabled)</DialogTitle>
+          <DialogTitle>AI Agent Configuration (DeepSeek)</DialogTitle>
           <DialogDescription>
-            Configure the Agent&apos;s role, model, and available tools for advanced reasoning and action.
+            Configure an AI agent powered by DeepSeek with access to Sui blockchain tools. The agent can analyze context and execute transactions.
           </DialogDescription>
         </DialogHeader>
-       <Form {...form}>
-         <form 
-           onSubmit={form.handleSubmit(handleSubmit)}
-           className="space-y-6 mt-4"
-         > 
-          
-          {/* Output Variable Name Field */}
-          <FormField 
-            control={form.control}
-            name="variableName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Output Variable Name</FormLabel>
-                <FormControl>
-                  <Input placeholder="agentResult" 
-                  {...field} />
-                </FormControl>
-                <FormDescription>
-                  Reference the Agent's final output in other nodes using: **{`{{${watchVariableName}.result}}`}**
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          {/* Model Selection Field */}
-          <FormField 
-            control={form.control}
-            name="model"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>AI Model</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-6 mt-4"
+          >
+            {/* Variable Name */}
+            <FormField
+              control={form.control}
+              name="variableName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Variable Name</FormLabel>
                   <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select an OpenRouter model"/>
-                    </SelectTrigger>
+                    <Input placeholder="aiAgent" {...field} />
                   </FormControl>
-                  <SelectContent>
-                    {AVAILABLE_MODELS.map((model) => (
-                      <SelectItem key={model} value={model}>{model}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormDescription>
-                  GPT-4 and similar models are recommended for reliable tool usage.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                  <FormDescription>
+                    Reference the agent's response: {`{{${watchVariableName || "aiAgent"}.agentResponse.text}}`}
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          {/* System Prompt Field */}
-          <FormField 
-            control={form.control}
-            name="systemPrompt"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>System Prompt (Agent Role)</FormLabel>
-                <FormControl>
-                  <Textarea 
-                  placeholder="You are an expert workflow agent..." 
-                  {...field} 
-                  className="min-h-[120px] font-sans text-sm"/>
-                </FormControl>
-                <FormDescription>
-                  Define the Agent's persona, capabilities, and strict rules of operation.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          {/* User Prompt Field */}
-          <FormField 
-            control={form.control}
-            name="userPrompt"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>User Prompt (Task)</FormLabel>
-                <FormControl>
-                  <Textarea 
-                  placeholder="Generate a summary report for the new user {{newUser.id}} and send an email using the tool." 
-                  {...field} 
-                  className="min-h-[120px] font-sans text-sm"/>
-                </FormControl>
-                <FormDescription>
-                  The specific task for the Agent. Use **{`{{variable}}`}** to inject workflow data.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          {/* Tools Checkbox Group */}
-          <FormField
-            control={form.control}
-            name="tools"
-            render={({field}) => (
-              <FormItem>
-                <FormLabel className="text-base">Available Tools</FormLabel>
-                <FormControl>
-                <div className="flex flex-wrap gap-4 pt-2">
-                  {AVAILABLE_TOOLS.map((tool) => {
-                                     const selected = (field.value ?? []).includes(tool);
-                                     return (
-                                       <label key={tool} className="flex items-center gap-2">
-                                         <Checkbox
-                                           checked={selected}
-                                           onCheckedChange={(checked) => {
-                                             const current = field.value ?? [];
-                                             if (checked) {
-                                               field.onChange([...current, tool]);
-                                             } else {
-                                               field.onChange(current.filter((v) => v !== tool));
-                                             }
-                                           }}
-                                         />
-                                         <span className="capitalize">{tool.replace(/_/g, " ")}</span>
-                                       </label>
-                                     );
-                                   })}
-                </div>
-                </FormControl>
-                <FormDescription>
-                  Select the tools the Agent is allowed to use to complete the task.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+            {/* Prompt */}
+            <FormField
+              control={form.control}
+              name="prompt"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Prompt / Task</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Transfer 1 SUI to 0x742d35cc6634c0532925a3b844bc9e7202e0b3e3 and confirm the transaction"
+                      {...field}
+                      className="min-h-[100px] font-mono text-sm"
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Describe the task for the AI agent. Can reference previous steps with {`{{variableName}}`}
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <DialogFooter className="pt-4">
-            <Button type="submit">Save Agent Configuration</Button>
-          </DialogFooter>
-         </form>
-       </Form>
+            {/* Enable Sui Tools */}
+            <FormField
+              control={form.control}
+              name="enableSuiTools"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel className="text-base">
+                      Enable Sui Blockchain Tools
+                    </FormLabel>
+                    <FormDescription>
+                      Allow the agent to execute transactions and query the Sui blockchain
+                      {watchEnableSuiTools && (
+                        <div className="mt-2 text-xs">
+                          <span className="font-semibold">Available tools:</span> Transfer, Split/Merge Coins, Query Balances, Events, and more ({AvailableToolsArray.length} tools)
+                        </div>
+                      )}
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
+            {/* System Prompt (Optional) */}
+            <FormField
+              control={form.control}
+              name="systemPrompt"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>System Prompt (Optional)</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="You are a helpful crypto trading assistant. Always verify balances before transfers..."
+                      {...field}
+                      className="min-h-[80px] font-mono text-sm"
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Custom instructions for the AI agent's behavior. Leave empty for default.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Max Steps */}
+            <FormField
+              control={form.control}
+              name="maxRetries"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Max Agentic Steps</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      min={1}
+                      max={20}
+                      {...field}
+                      onChange={e => field.onChange(parseInt(e.target.value))}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Maximum number of reasoning steps the agent can take (1-20). Higher values allow more complex tasks.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Max Tokens */}
+            <FormField
+              control={form.control}
+              name="maxTokens"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Max Tokens</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      min={256}
+                      max={8192}
+                      {...field}
+                      onChange={e => field.onChange(parseInt(e.target.value))}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Maximum tokens for the response (256-8192). Lower values reduce cost.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <DialogFooter className="mt-6">
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                Cancel
+              </Button>
+              <Button type="submit">Save Agent</Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

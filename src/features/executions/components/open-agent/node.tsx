@@ -1,7 +1,6 @@
 "use client";
 
 import { type Node, type NodeProps, useReactFlow } from "@xyflow/react";
-import { Globe2Icon } from "lucide-react";
 import { memo, useState } from "react";
 import { BaseExecutionNode } from "@/features/executions/components/base-execution-node";
 import { AVAILABLE_TOOLS, OpenAgentDialog, OpenAgentFormValues } from "./dialog";
@@ -11,10 +10,11 @@ import { OPEN_AGENT_CHANNEL_NAME } from "@/inngest/channels/open-agent";
 
 type OpenAgentNodeData = {
   variableName?: string;
+  prompt?: string;
   model?: string;
-  systemPrompt?: string;
-  userPrompt?: string;
-  tools?: (typeof AVAILABLE_TOOLS)[number][];
+  enableSuiTools?: boolean;
+  maxRetries?: number;
+  systemPrompt?: string | undefined;
 };
 
 type OpenAgentNodeType = Node<OpenAgentNodeData>;
@@ -49,7 +49,11 @@ export const OpenAgentNode = memo((props: NodeProps<OpenAgentNodeType>) => {
   };
 
   const nodeData = props.data;
-  const description = nodeData?.userPrompt || "Not Configured";
+  const description = nodeData.prompt
+    ? `Prompt: ${nodeData.prompt.substring(0, 30)}${
+        nodeData.prompt.length > 30 ? "..." : ""
+      }`
+    : "No prompt set";
 
   return (
     <>
