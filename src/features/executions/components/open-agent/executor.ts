@@ -33,54 +33,8 @@ export const openAgentExecutor: NodeExecutor<OpenAgentData> = async ({
   );
 
   try {
-    const result = await step.run("http-request", async () => {
-      if (!data.endpoint) {
-        await publish(
-          openAgentChannel().status({
-            nodeId,
-            status: "error",
-          }),
-        );
-        throw new NonRetriableError("HttpRequestNode: Endpoint is missing");
-      }
-      if (!data.method) {
-        await publish(
-          openAgentChannel().status({
-            nodeId,
-            status: "error",
-          }),
-        );
-        throw new NonRetriableError("HttpRequestNode: Method is missing");
-      }
-      if (!data.variableName) {
-        await publish(
-          openAgentChannel().status({
-            nodeId,
-            status: "error",
-          }),
-        );
-        throw new NonRetriableError(
-          "HttpRequestNode: Variable name is missing",
-        );
-      }
-      const endpoint = Handlebars.compile(data.endpoint)(context);
-      const method = data.method;
-
-      const options: KyOptions = { method };
-      if (["POST", "PUT", "PATCH"].includes(method)) {
-        const resolved = Handlebars.compile(data.body || {})(context);
-        JSON.parse(resolved);
-        options.body = resolved;
-
-        options.headers = {
-          "Content-Type": "application/json",
-        };
-      }
-      const response = await ky(endpoint, options);
-      const contentType = response.headers.get("content-type");
-      const responseData = contentType?.includes("application/json")
-        ? await response.json()
-        : await response.text();
+    const {steps} = await step.run("open-agent", async () => {
+      
 
       const responsePayload = {
         httpResponse: {
@@ -90,10 +44,7 @@ export const openAgentExecutor: NodeExecutor<OpenAgentData> = async ({
         },
       };
 
-      return {
-        ...context,
-        [data.variableName]: responsePayload,
-      };
+      
     });
 
     await publish(
@@ -102,8 +53,10 @@ export const openAgentExecutor: NodeExecutor<OpenAgentData> = async ({
         status: "success",
       }),
     );
-
-    return result;
+    return {
+      ...context,
+      [data.variableName]: responsePayload,
+    };
   } catch (error) {
     await publish(
       openAgentChannel().status({

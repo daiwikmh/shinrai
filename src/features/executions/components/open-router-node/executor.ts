@@ -1,9 +1,9 @@
 import type { NodeExecutor } from "@/features/executions/type";
 import { NonRetriableError } from "inngest";
-import ky, { type Options as KyOptions } from "ky";
 import Handlebars from "handlebars";
-import { httpRequestChannel } from "@/inngest/channels/http-request";
 import { openRouterNodeChannel } from "@/inngest/channels/openrouter-node";
+import { createOpenRouter } from '@openrouter/ai-sdk-provider';
+import { generateText } from 'ai';
 
 Handlebars.registerHelper("json", (context) => {
   const jsonString = JSON.stringify(context, null, 2);
@@ -13,9 +13,9 @@ Handlebars.registerHelper("json", (context) => {
 
 type OpenRouterData = {
   variableName?: string;
-  endpoint?: string;
-  method?: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
-  body?: string;
+  model?: string;
+  systemPrompt?: string;
+  userPrompt?: string;
 };
 export const openRouterExecutor: NodeExecutor<OpenRouterData> = async ({
   data,
@@ -31,79 +31,46 @@ export const openRouterExecutor: NodeExecutor<OpenRouterData> = async ({
       status: "loading",
     }),
   );
+  const openRouter = createOpenRouter({
+    apiKey: process.env.OPENROUTER_API_KEY,
+  });
 
   try {
-    const result = await step.run("http-request", async () => {
-      if (!data.endpoint) {
-        await publish(
-          openRouterNodeChannel().status({
-            nodeId,
-            status: "error",
-          }),
-        );
-        throw new NonRetriableError("HttpRequestNode: Endpoint is missing");
-      }
-      if (!data.method) {
-        await publish(
-          openRouterNodeChannel().status({
-            nodeId,
-            status: "error",
-          }),
-        );
-        throw new NonRetriableError("HttpRequestNode: Method is missing");
-      }
-      if (!data.variableName) {
-        await publish(
-          openRouterNodeChannel().status({
-            nodeId,
-            status: "error",
-          }),
-        );
-        throw new NonRetriableError(
-          "HttpRequestNode: Variable name is missing",
-        );
-      }
-      const endpoint = Handlebars.compile(data.endpoint)(context);
-      const method = data.method;
-
-      const options: KyOptions = { method };
-      if (["POST", "PUT", "PATCH"].includes(method)) {
-        const resolved = Handlebars.compile(data.body || {})(context);
-        JSON.parse(resolved);
-        options.body = resolved;
-
-        options.headers = {
-          "Content-Type": "application/json",
-        };
-      }
-      const response = await ky(endpoint, options);
-      const contentType = response.headers.get("content-type");
-      const responseData = contentType?.includes("application/json")
-        ? await response.json()
-        : await response.text();
-
-      const responsePayload = {
-        httpResponse: {
-          status: response.status,
-          statusText: response.statusText,
-          body: responseData,
-        },
-      };
-
-      return {
-        ...context,
-        [data.variableName]: responsePayload,
-      };
-    });
-
+    
+    if (!data.variableName) {
+      throw new NonRetriableError("Variable name is required");
+    }
+    if (!data.model) {
+      throw new NonRetriableError("Model is required");
+    }
+   const { steps } = await step.ai.wrap(
+     "openRouter-generate-text",
+     generateText,
+     {
+       model: openRouter.chat("text-davinci-002"),
+       system: data.systemPrompt,
+       prompt: data.userPrompt || "",
+       experimental_telemetry:{
+         isEnabled:true,
+         recordInputs:true,
+         recordOutputs:true
+       }
+       
+     }
+   )
+   const text = steps[0].content[0].type === "text" ? steps[0].content[0].text : "";
     await publish(
       openRouterNodeChannel().status({
         nodeId,
         status: "success",
       }),
     );
-
-    return result;
+   return {
+     ...context,
+     [data.variableName]: {
+       aiResponse: text
+     }
+   }
   } catch (error) {
     await publish(
       openRouterNodeChannel().status({

@@ -26,31 +26,45 @@ import {
   SelectItem, 
   SelectTrigger, 
   SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox"; // Added Checkbox import
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { AVAILABLE_MODELS } from "../open-router-node/dialog";
 
-const formSchema = z.object({
+// Re-using the schema definition from the section above
+export const AVAILABLE_TOOLS = [
+  "send_email",
+  "query_prisma",
+  "fetch_data",
+  "schedule_inngest_function",
+] as const;
+
+const agentNodeSchema = z.object({
   variableName: z.string()
     .min(1, "Variable name is required")
     .regex(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/, {
-      message: "Variable name must start with a letter or underscore and contain only letters, numbers, or underscores"}),
-  endpoint: z.string()
-    .min(1, { message: "Please enter a valid URL" }),
-  method: z.enum(["GET", "POST", "PUT", "PATCH", "DELETE"]),
-  body: z
-    .string()
-    .optional()
-    // .refine()
+      message: "Must be a valid variable name (e.g., 'agent_analysis')"}),
+  model: z.enum(AVAILABLE_MODELS),
+  systemPrompt: z.string()
+    .min(10, "The system prompt must be at least 10 characters.")
+    .max(8192, "System prompt is too long."),
+  userPrompt: z.string()
+    .min(10, "The user prompt must be at least 10 characters.")
+    .max(8192, "User prompt is too long."),
+  tools: z.array(z.enum(AVAILABLE_TOOLS))
+    .min(0, { message: "Select at least one tool or keep it empty." })
+    .default([]),
 });
-export type OpenAgentFormValues = z.infer<typeof formSchema>;
+
+export type OpenAgentFormValues = z.infer<typeof agentNodeSchema>;
 
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (values: z.infer<typeof formSchema>) => void;
-  defaultValues?: Partial<OpenAgentFormValues>;
+  onSubmit: (values: OpenAgentFormValues) => void;
+  defaultValues: Partial<OpenAgentFormValues>;
 };
 
 
@@ -61,25 +75,22 @@ export const OpenAgentDialog = ({
   defaultValues = {}
 }: Props) => {
   const form = useForm<OpenAgentFormValues>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(agentNodeSchema),
     defaultValues: {
-      variableName: defaultValues.variableName || "",
-      endpoint: defaultValues.endpoint || "",
-      method: defaultValues.method || "GET",
-      body: defaultValues.body || ""
+      variableName: defaultValues.variableName || "agentResult",
+      model: defaultValues.model || AVAILABLE_MODELS[0],
+      systemPrompt: defaultValues.systemPrompt || "",
+      userPrompt: defaultValues.userPrompt || "",
+      tools: defaultValues.tools || [],
     },
   });
+  
   const watchVariableName = useWatch({
     control: form.control,
     name: "variableName"
-  })  || "myApiCall";
-  const watchMethod = useWatch({
-    control: form.control,
-    name: "method"
-  });
-  const showBodyField = ["PATCH", "POST", "PUT"].includes(watchMethod);
-  
-  const handleSubmit = (values: z.infer<typeof formSchema>) => {
+  }) || "agentResult";
+
+  const handleSubmit = (values: OpenAgentFormValues) => {
     onSubmit(values);
     onOpenChange(false);
   };
@@ -87,121 +98,162 @@ export const OpenAgentDialog = ({
   useEffect(() => {
     if (open) {
       form.reset({
-        variableName: defaultValues.variableName || "",
-        endpoint: defaultValues.endpoint || "",
-        method: defaultValues.method || "GET",
-        body: defaultValues.body || ""
+        variableName: defaultValues.variableName || "agentResult",
+        model: defaultValues.model || AVAILABLE_MODELS[0],
+        systemPrompt: defaultValues.systemPrompt || "",
+        userPrompt: defaultValues.userPrompt || "",
+        tools: defaultValues.tools || [],
       });
     }
-  }, [form, open,defaultValues]);
+  }, [form, open, defaultValues]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-[425px] md:max-w-[700px]">
         <DialogHeader>
-          <DialogTitle>Http Request</DialogTitle>
+          <DialogTitle>AI Agent Node (Tools Enabled)</DialogTitle>
           <DialogDescription>
-            Configure settings for the Http Request Node.
+            Configure the Agent&apos;s role, model, and available tools for advanced reasoning and action.
           </DialogDescription>
         </DialogHeader>
        <Form {...form}>
          <form 
            onSubmit={form.handleSubmit(handleSubmit)}
-           className="space-y-8 mt-4"
-         > <FormField 
-         control={form.control}
-         name="variableName"
-         render={({ field }) => (
-           <FormItem>
-             <FormLabel>Variable Name</FormLabel>
-            <FormControl>
-              <Input placeholder="myApiCall" 
-              {...field} />
-            </FormControl>
-             <FormDescription>
-               Use this name to reference the results in other nodes: {" "}
-               {`{{${watchVariableName || "myApiCall"}.httpResponse.data}}`}
-             </FormDescription>
-             <FormMessage />
-           </FormItem>
-         )}
-       />
-           <FormField 
-           control={form.control}
-           name="method"
-           render={({ field }) => (
-             <FormItem>
-               <FormLabel>Method</FormLabel>
-               <Select
-                 onValueChange={field.onChange}
-                 defaultValue={field.value}
-               >
-                 <FormControl>
-                   <SelectTrigger className="w-full">
-                     <SelectValue placeholder="Select a method"/>
-                   </SelectTrigger>
-                 </FormControl>
-                 <SelectContent>
-                   <SelectItem value="GET">GET</SelectItem>
-                   <SelectItem value="POST">POST</SelectItem>
-                   <SelectItem value="PUT">PUT</SelectItem>
-                   <SelectItem value="PATCH">PATCH</SelectItem>
-                   <SelectItem value="DELETE">DELETE</SelectItem>
-                 </SelectContent>
-               </Select>
-               <FormDescription>
-                 The HTTP method to use for the request.
-               </FormDescription>
-               <FormMessage />
-             </FormItem>
-           )}
-         />
-         <FormField 
-         control={form.control}
-         name="endpoint"
-         render={({ field }) => (
-           <FormItem>
-             <FormLabel>Endpoint</FormLabel>
-            <FormControl>
-              <Input placeholder="https://api.example.com/users/{{httpResponse.data.id}}" 
-              {...field} />
-            </FormControl>
-             <FormDescription>
-               Static URL or use {"{{variable}}"} for simple values or {"{{json variable}}"} to stringify objects
-             </FormDescription>
-             <FormMessage />
-           </FormItem>
-         )}
-       />
-       {showBodyField && (
-         <FormField 
-         control={form.control}
-         name="body"
-         render={({ field }) => (
-           <FormItem>
-             <FormLabel>Request Body</FormLabel>
-            <FormControl>
-              <Textarea 
-              placeholder={
-                `{\n "userId": "{{httpResponse.data.id}}",\n
-                "name": "{{httpResponse.data.name}}" ,\n
-                "items": "{{httpResponse.data.items}}" ,\n
-                }`
-              }  
-              {...field} 
-              className="min-h-[120px] font-mono text-sm"/>
-            </FormControl>
-             <FormDescription>
-               JSON with template variable. Use {"{{variables}}"} for simple values or{"{{json variable}}"} to stringify objects
-             </FormDescription>
-             <FormMessage />
-           </FormItem>
-         )}
-       />
-       )}
-       <DialogFooter className="mt-4">
-         <Button type="submit">Save</Button>
-       </DialogFooter>
+           className="space-y-6 mt-4"
+         > 
+          
+          {/* Output Variable Name Field */}
+          <FormField 
+            control={form.control}
+            name="variableName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Output Variable Name</FormLabel>
+                <FormControl>
+                  <Input placeholder="agentResult" 
+                  {...field} />
+                </FormControl>
+                <FormDescription>
+                  Reference the Agent's final output in other nodes using: **{`{{${watchVariableName}.result}}`}**
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          {/* Model Selection Field */}
+          <FormField 
+            control={form.control}
+            name="model"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>AI Model</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select an OpenRouter model"/>
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {AVAILABLE_MODELS.map((model) => (
+                      <SelectItem key={model} value={model}>{model}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormDescription>
+                  GPT-4 and similar models are recommended for reliable tool usage.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* System Prompt Field */}
+          <FormField 
+            control={form.control}
+            name="systemPrompt"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>System Prompt (Agent Role)</FormLabel>
+                <FormControl>
+                  <Textarea 
+                  placeholder="You are an expert workflow agent..." 
+                  {...field} 
+                  className="min-h-[120px] font-sans text-sm"/>
+                </FormControl>
+                <FormDescription>
+                  Define the Agent's persona, capabilities, and strict rules of operation.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          {/* User Prompt Field */}
+          <FormField 
+            control={form.control}
+            name="userPrompt"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>User Prompt (Task)</FormLabel>
+                <FormControl>
+                  <Textarea 
+                  placeholder="Generate a summary report for the new user {{newUser.id}} and send an email using the tool." 
+                  {...field} 
+                  className="min-h-[120px] font-sans text-sm"/>
+                </FormControl>
+                <FormDescription>
+                  The specific task for the Agent. Use **{`{{variable}}`}** to inject workflow data.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          {/* Tools Checkbox Group */}
+          <FormField
+            control={form.control}
+            name="tools"
+            render={({field}) => (
+              <FormItem>
+                <FormLabel className="text-base">Available Tools</FormLabel>
+                <FormControl>
+                <div className="flex flex-wrap gap-4 pt-2">
+                  {AVAILABLE_TOOLS.map((tool) => {
+                                     const selected = (field.value ?? []).includes(tool);
+                                     return (
+                                       <label key={tool} className="flex items-center gap-2">
+                                         <Checkbox
+                                           checked={selected}
+                                           onCheckedChange={(checked) => {
+                                             const current = field.value ?? [];
+                                             if (checked) {
+                                               field.onChange([...current, tool]);
+                                             } else {
+                                               field.onChange(current.filter((v) => v !== tool));
+                                             }
+                                           }}
+                                         />
+                                         <span className="capitalize">{tool.replace(/_/g, " ")}</span>
+                                       </label>
+                                     );
+                                   })}
+                </div>
+                </FormControl>
+                <FormDescription>
+                  Select the tools the Agent is allowed to use to complete the task.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <DialogFooter className="pt-4">
+            <Button type="submit">Save Agent Configuration</Button>
+          </DialogFooter>
          </form>
        </Form>
       </DialogContent>

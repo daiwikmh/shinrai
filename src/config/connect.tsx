@@ -1,11 +1,10 @@
-import { SuiClient, getFullnodeUrl } from '@mysten/sui/client';
+"use client"
+import { getFullnodeUrl } from '@mysten/sui/client';
 import { walrus } from '@mysten/walrus';
+import { SuiJsonRpcClient } from '@mysten/sui/jsonRpc';
 
-// Create extended SuiClient with walrus capabilities for browser wallet usage
-export const client = new SuiClient({
+
+export const client = new SuiJsonRpcClient({
 	url: getFullnodeUrl('testnet'),
-}).$extend(
-	walrus({
-		network: 'testnet',
-	})
-);
+	network: 'testnet',
+}).$extend(walrus());
