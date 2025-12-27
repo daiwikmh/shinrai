@@ -247,10 +247,10 @@ interface EntityItemProps {
   title: string;
   subtitle: React.ReactNode;
   image: React.ReactNode;
-  actions: React.ReactNode;
-  isRemoving: boolean;
+  actions?: React.ReactNode;
+  isRemoving?: boolean;
   className?: string;
-  onRemove: () => void | Promise<void>;
+  onRemove?: () => void | Promise<void>;
 }
 
 export const EntityItem = ({

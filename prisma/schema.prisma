@@ -19,6 +19,7 @@ model User {
   accounts      Account[]
   sessions      Session[]
   workflows     Workflow[]
+  credentials   Credential[]
 
   @@map("user")
 }
@@ -67,6 +68,28 @@ model Verification {
   @@map("verification")
 }
 
+model Credential {
+  id String @id @default(cuid())
+  name String
+  type CredentialType
+  value String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Node Node[] 
+
+}
+
+enum CredentialType {
+  OPENAI
+  ANTHROPIC
+  GEMINI
+  OPENROUTER
+}
+
+
 model Workflow{
  id String @id @default(cuid())
  name String
@@ -79,6 +102,8 @@ model Workflow{
  privateKey String
  address String
  keypair String
+ 
+ executions Execution[]
  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
 }
@@ -105,6 +130,9 @@ model Node {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  credentialId String?
+  credential Credential? @relation(fields: [credentialId], references: [id])
+  
   outputConnection Connection[] @relation("FromNode")
   inputConnection Connection[] @relation("ToNode")
 
@@ -131,4 +159,27 @@ model Connection {
   workflow Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
 
   @@unique([ fromNodeId, toNodeId, fromOutput, toInput ])
+}
+
+enum ExecutionStatus {
+  RUNNING
+  SUCCESS
+  FAILED
+}
+model Execution{
+id String @id @default(cuid())
+
+workflowId String
+workflow Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+status ExecutionStatus @default(RUNNING)
+error String? @db.Text
+errorStack String? @db.Text
+
+startedAt DateTime @default(now())
+completedAt DateTime?
+
+inngestEventId String @unique
+
+output Json?
 }

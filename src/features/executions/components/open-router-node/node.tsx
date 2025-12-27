@@ -11,6 +11,7 @@ import { OPENROUTER_NODE_CHANNEL_NAME } from "@/inngest/channels/openrouter-node
 
 type OpenRouterNodeData = {
   variableName?: string;
+  credentialId?: string;
   model?: string;
   systemPrompt?: string;
   userPrompt?: string;

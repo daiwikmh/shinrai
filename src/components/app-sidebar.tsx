@@ -128,7 +128,7 @@ const AppSidebar = () => {
                       asChild
                       className="gap-x-4 h-10 px-4 "
                     >
-                      <Link href={item.href} prefetch>
+                      <Link href={item.href}>
                         <item.icon className="size-4" />
                         <span>{item.title}</span>
                       </Link>
