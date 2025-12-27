@@ -2,7 +2,7 @@ import type { NodeExecutor } from "@/features/executions/type";
 import { NonRetriableError } from "inngest";
 import { openAgentChannel } from "@/inngest/channels/open-agent";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
-import { generateText } from "ai";
+import { generateText, stepCountIs } from "ai";
 import { allSuiTools } from "./tools";
 import prisma from "@/lib/db";
 import Handlebars from "handlebars";
@@ -20,7 +20,7 @@ type OpenAgentData = {
   model?: string;
   enableSuiTools?: boolean;
   systemPrompt?: string;
-  maxSteps?: number;
+  maxRetries?: number;
   maxTokens?: number;
 };
 
@@ -75,13 +75,15 @@ ${userPrompt}`
       const aiResult = await step.ai.wrap(
         "ai-agent-execution",
         generateText,{
-          model: openRouter.chat(data.model || "deepseek/deepseek-chat-v3-0324:free"),
+          model: openRouter.chat(data.model || "deepseek/deepseek-chat-v3.1"),
           tools,
           system: data.systemPrompt || `You are a helpful AI agent executing within a workflow.
 You have access to the workflow context and can use Sui blockchain tools to perform transactions.
 Always provide clear, actionable responses.
 ${data.enableSuiTools ? `The workflow wallet address is: ${workflow.address}` : ''}`,
           prompt: fullPrompt,
+          maxOutputTokens: 200,
+          stopWhen: [stepCountIs(5)]
 
         }
 
@@ -90,25 +92,8 @@ ${data.enableSuiTools ? `The workflow wallet address is: ${workflow.address}` : 
       // Prepare response payload
       const responsePayload = {
         agentResponse: {
-          text: aiResult.text,
-          finishReason: aiResult.finishReason,
-          usage: {
-            promptTokens: aiResult.usage.inputTokens,
-            completionTokens: aiResult.usage.outputTokens,
-            totalTokens: aiResult.usage.totalTokens,
-          },
-          toolCalls: aiResult.steps.flatMap(
-            (step) =>
-              step.toolCalls?.map((call) => ({
-                toolName: call.toolName,
-                args: call.input,
-                result: aiResult.steps
-                  .find((s) => s.toolResults)
-                  ?.toolResults?.find((r) => r.toolCallId === call.toolCallId)
-                  ?.output,
-              })) || []
-          ),
-          steps: aiResult.steps.length,
+          text: (aiResult.steps.at(-1)?.content.at(-1)?.type === "text") ? aiResult.steps.at(-1)?.content.at(-1)?.text : aiResult.steps.at(-1)?.content.at(-1),
+          result: aiResult.steps,
           model: data.model || "deepseek/deepseek-chat-v3-0324:free",
         },
       };
@@ -125,8 +110,6 @@ ${data.enableSuiTools ? `The workflow wallet address is: ${workflow.address}` : 
         [data.variableName]: responsePayload,
       };
     
-
-
   } catch (error) {
     await publish(
       openAgentChannel().status({

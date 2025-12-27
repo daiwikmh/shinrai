@@ -30,9 +30,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { useCredentialByType } from "@/features/credentials/hooks/use-credentials";
+import { CredentialType } from "@/generated/prisma/enums";
+import Image from "next/image";
 
 export const AVAILABLE_MODELS = [
-  "deepseek/deepseek-chat-v3-0324:free",];
+  "deepseek/deepseek-chat-v3.1",
+  "nex-agi/deepseek-v3.1-nex-n1:free"];
 
 // Re-using the schema definition from the section above
 const openRouterSchema = z.object({
@@ -40,6 +44,7 @@ const openRouterSchema = z.object({
     .min(1, "Variable name is required")
     .regex(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/, {
       message: "Must be a valid variable name (e.g., 'ai_result_1')"}),
+  credentialId: z.string().min(1,"Credential ID is required"),
   model: z.enum(AVAILABLE_MODELS),
   systemPrompt: z.string()
     .min(10, "The prompt must be at least 10 characters.")
@@ -65,10 +70,15 @@ export const OpenRouterDialog = ({
   onSubmit,
   defaultValues = {}
 }: Props) => {
+  const {
+    data: credentials,
+    isLoading: isLoadingCredentials,
+  } = useCredentialByType(CredentialType.OPENROUTER)
   const form = useForm<OpenRouterFormValues>({
     resolver: zodResolver(openRouterSchema),
     defaultValues: {
       variableName: defaultValues.variableName || "aiResult",
+      credentialId: defaultValues.credentialId || "",
       model: defaultValues.model || AVAILABLE_MODELS[0],
       systemPrompt: defaultValues.systemPrompt || "",
       userPrompt: defaultValues.userPrompt || ""
@@ -89,6 +99,7 @@ export const OpenRouterDialog = ({
     if (open) {
       form.reset({
         variableName: defaultValues.variableName || "aiResult",
+        credentialId: defaultValues.credentialId || "",
         model: defaultValues.model || AVAILABLE_MODELS[0],
         systemPrompt: defaultValues.systemPrompt || "",
         userPrompt: defaultValues.userPrompt || ""
@@ -98,7 +109,7 @@ export const OpenRouterDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px] md:max-w-[600px]">
+      <DialogContent className="sm:max-w-[425px] md:max-w-[600px] max-h-[600px] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>AI Text Generation (OpenRouter)</DialogTitle>
           <DialogDescription>
@@ -131,6 +142,47 @@ export const OpenRouterDialog = ({
             )}
           />
           
+          {/* Credential Selection Field */}
+          <FormField 
+            control={form.control}
+            name="credentialId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>AI Model</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                  disabled={isLoadingCredentials || !credentials?.length}
+                >
+                  <FormControl>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select an OpenRouter credential"/>
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {credentials?.map((credential) => (
+                      <SelectItem key={credential.id} value={credential.id}>
+                        <div className="flex items-center gap-2">
+                        <Image
+                            src={"/logo/openrouter.png"}
+                            alt={credential.name}
+                            width={16}
+                            height={16}             
+                          />
+                        {credential.name}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormDescription>
+                  The credential will be accessed for the OpenRouter service.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           {/* Model Selection Field */}
           <FormField 
             control={form.control}

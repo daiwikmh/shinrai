@@ -3,7 +3,7 @@
 import { type Node, type NodeProps, useReactFlow } from "@xyflow/react";
 import { memo, useState } from "react";
 import { BaseExecutionNode } from "@/features/executions/components/base-execution-node";
-import { AVAILABLE_TOOLS, OpenAgentDialog, OpenAgentFormValues } from "./dialog";
+import { OpenAgentDialog, OpenAgentFormValues } from "./dialog";
 import { useNodeStatus } from "../../hooks/use-node-status";
 import { fetchOpenAgentRealtimeToken } from "./actions";
 import { OPEN_AGENT_CHANNEL_NAME } from "@/inngest/channels/open-agent";
@@ -11,9 +11,11 @@ import { OPEN_AGENT_CHANNEL_NAME } from "@/inngest/channels/open-agent";
 type OpenAgentNodeData = {
   variableName?: string;
   prompt?: string;
+  credentialId?: string;
   model?: string;
   enableSuiTools?: boolean;
   maxRetries?: number;
+  maxTokens?: number;
   systemPrompt?: string | undefined;
 };
 
