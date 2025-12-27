@@ -1,10 +1,9 @@
 "use client";
 
 import { type Node, type NodeProps, useReactFlow } from "@xyflow/react";
-import { Globe2Icon } from "lucide-react";
 import { memo, useState } from "react";
 import { BaseExecutionNode } from "@/features/executions/components/base-execution-node";
-import { AVAILABLE_MODELS, OpenRouterDialog, OpenRouterFormValues } from "./dialog";
+import { OpenRouterDialog, OpenRouterFormValues } from "./dialog";
 import { useNodeStatus } from "../../hooks/use-node-status";
 import { fetchOpenRouterRealtimeToken } from "./actions";
 import { OPENROUTER_NODE_CHANNEL_NAME } from "@/inngest/channels/openrouter-node";

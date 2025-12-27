@@ -69,6 +69,35 @@ export function RegisterForm() {
     )
   }
   
+  const signInGithub = () => {
+    authClient.signIn.social({
+      provider: 'github',
+      fetchOptions:{
+        onSuccess: () => {
+          router.push("/")
+        },
+        onError: (error) => {
+          toast.error(error.error.message)
+        }
+      }
+    })
+  }
+  
+  const signInGoogle = () => {
+    authClient.signIn.social({
+      provider: 'google',
+      fetchOptions:{
+        onSuccess: () => {
+          router.push("/")
+        },
+        onError: (error) => {
+          toast.error(error.error.message)
+        }
+      }
+    })
+  }
+  
+  
   const isPending = form.formState.isSubmitting;
   
   return (
@@ -87,11 +116,11 @@ export function RegisterForm() {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <div className="grid gap-6">
                 <div className="flex flex-col gap-4">
-                  <Button variant={"outline"} className="w-full" type="button" disabled={isPending}>
+                  <Button variant={"outline"} onClick={signInGithub} className="w-full" type="button" disabled={isPending}>
                     <Image alt="Github Logo" src={"/logo/github.png"} width={30} height={30}/>
                     Continue with Github
                   </Button>
-                  <Button variant={"outline"} className="w-full" type="button" disabled={isPending}>
+                  <Button variant={"outline"} onClick={signInGoogle} className="w-full" type="button" disabled={isPending}>
                     <Image alt="Google Logo" src={"/logo/google.png"} width={30} height={30}/>
                     Continue with Google
                   </Button>

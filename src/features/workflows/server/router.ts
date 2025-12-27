@@ -7,6 +7,7 @@ import { NodeType } from "@/generated/prisma/enums";
 import type { Edge, Node } from "@xyflow/react";
 import { inngest } from "@/inngest/client";
 import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
+import { encrypt } from "@/lib/encryption";
 
 const keypair = new Ed25519Keypair();
 
@@ -34,10 +35,8 @@ export const workflowsRouter = createTRPCRouter({
       data: {
         name: generateSlug(3),
         userId: ctx.auth.user.id,
-        keypair: `${keypair}`,
+        privateKey: encrypt(`${keypair.getSecretKey()}`),
         address: `${keypair.toSuiAddress()}`,
-        publicKey: `${keypair.getPublicKey().toBase64()}`,
-        privateKey: `${keypair.getSecretKey()}`,
         nodes: {
           create: [
             {
@@ -170,8 +169,6 @@ export const workflowsRouter = createTRPCRouter({
         id: workflow.id,
         name: workflow.name,
         address: workflow.address,
-        keypair: workflow.keypair,
-        publicKey: workflow.publicKey,
         privateKey: workflow.privateKey,
         nodes,
         edges,

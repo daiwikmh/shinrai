@@ -209,7 +209,7 @@ export const CredentialForm = ({ initialData }: CredentialFormProps) => {
                   onClick={() => router.push("/credentials")}
                 >
                   <Link href={"/credentials"} prefetch>
-                    `Cancel
+                    Cancel
                   </Link>
                 </Button>
               </div>
@@ -223,5 +223,5 @@ export const CredentialForm = ({ initialData }: CredentialFormProps) => {
 
 export const CredentialView = ({ credentialId }: { credentialId: string }) => {
   const { data: credential } = useSuspenseCredential(credentialId);
-  return <CredentialForm initialData={credential} />;
+  return <CredentialForm initialData={credential as CredentialFormProps["initialData"]} />;
 };

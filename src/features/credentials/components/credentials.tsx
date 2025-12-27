@@ -59,8 +59,8 @@ export const CredentialsList = () => {
   return (
     <EntityList
       items={credentials.data?.items}
-      getKey={(credential) => credential.id}
-      renderItem={(credential) => (
+      getKey={(credential: Credential) => credential.id}
+      renderItem={(credential: Credential) => (
         <CredentialItem key={credential.id} data={credential} />
       )}
       emptyView={<CredentialsEmpty />}
@@ -135,7 +135,7 @@ export const CredentialItem = ({ data }: { data: Credential }) => {
       },
     );
   };
-  const logo = credentialLogos[data.type];
+  const logo = credentialLogos[data.type as CredentialType];
 
   return (
     <EntityItem

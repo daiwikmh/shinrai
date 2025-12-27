@@ -13,7 +13,6 @@ import {
 import {
   useSuspenseExecutions,
 } from "../hooks/use-executions";
-import { useRouter } from "next/navigation";
 import { useExecutionsParams } from "../hooks/use-executions-params";
 import { ExecutionStatus } from "@/generated/prisma/enums";
 import { formatDistanceToNow } from "date-fns";
@@ -40,9 +39,9 @@ export const ExecutionsList = () => {
   return (
     <EntityList
       items={executions.data?.items}
-      getKey={(execution) => execution.id}
-      renderItem={(execution) => (
-        <ExecutionItem key={execution.id} data={execution} />
+      getKey={(execution:Execution) => execution.id}
+      renderItem={(execution:Execution) => (
+        <ExecutionItem key={execution.id} data={execution as Execution & {workflow:{id:string,name:string}}} />
       )}
       emptyView={<ExecutionsEmpty />}
     />

@@ -160,7 +160,7 @@ export const OpenRouterDialog = ({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {credentials?.map((credential) => (
+                    {Array.isArray(credentials) && credentials?.map((credential: any) => (
                       <SelectItem key={credential.id} value={credential.id}>
                         <div className="flex items-center gap-2">
                         <Image

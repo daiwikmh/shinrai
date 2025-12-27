@@ -4,11 +4,9 @@ import { WalrusFile } from "@mysten/walrus";
 import { client } from "@/config/connect";
 import ky from "ky";
 import { NonRetriableError } from "inngest";
-import z from "zod";
-import { decodeSuiPrivateKey, type Signer } from "@mysten/sui/cryptography";
 import prisma from "@/lib/db";
 import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
-import { fromBase64, fromHex } from "@mysten/utils";
+import { decrypt } from "@/lib/encryption";
 
 // WAL token type on Sui testnet
 const WAL_TOKEN_TYPE = "0x8270feb7375eee355e64fdb69c50abb6b5f9393a722883c1cf45f8e26048810a::wal::WAL";
@@ -54,24 +52,24 @@ function getContentTypeFromExtension(extension: string): string {
   return contentTypeMap[extension.toLowerCase()] || 'application/octet-stream';
   }
  
-const telegramFileSchema = z.object({
-  url: z.string().url(),
-  fileId: z.string(),
-  filePath: z.string(),
-  extension: z.string(),
-  size: z.number(),
-});
+interface telegramFileSchema {
+  url: string;
+  fileId: string;
+  filePath: string;
+  extension: string;
+  size: number;
+};
 
 
-const telegramNodeSchema = z.object({
-  chatId: z.string(),
-  username: z.string(),
-  sentAt: z.string(),
-  mediaType: z.string(),
-  isMedia: z.boolean(),
-  text: z.string().optional(),
-  file: telegramFileSchema.nullable(),
-});
+interface telegramNodeSchema {
+  chatId: string,
+  username: string,
+  sentAt: string,
+  mediaType: string,
+  isMedia: boolean,
+  text?: string,
+  file: telegramFileSchema | null,
+};
 
 type WalrusStorageData = {
   variableName?: string;
@@ -97,7 +95,7 @@ export const walrusStorageExecutor: NodeExecutor<WalrusStorageData> = async ({
     const result = await step.run("walrus-node", async () => {
       // ... (Keep your existing checks for telegramData and parsedTelegram) ...
       const workflowId = (context as any).workflowId;
-      const telegramData = (context as any).telegramNode; 
+      const telegramData:telegramNodeSchema = (context as any).telegramNode; 
       
       
       // [Validation logic omitted for brevity, keep your existing checks]
@@ -109,7 +107,7 @@ export const walrusStorageExecutor: NodeExecutor<WalrusStorageData> = async ({
         where: { id: workflowId },
       });
 
-      if (!workflow || !workflow.keypair) {
+      if (!workflow || !workflow.privateKey) {
         throw new NonRetriableError("Workflow wallet/keypair not found in DB.");
       }
 
@@ -121,7 +119,7 @@ export const walrusStorageExecutor: NodeExecutor<WalrusStorageData> = async ({
       console.log("Walbase WAL balance:", walrusBalance);
 
       // 2. RECONSTRUCT THE SIGNER
-      const secretKey = workflow.privateKey
+      const secretKey = decrypt(workflow.privateKey);
       const signer = Ed25519Keypair.fromSecretKey(secretKey);
 
       // 3. Download & Prepare
