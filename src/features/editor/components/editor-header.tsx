@@ -1,7 +1,7 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { SaveIcon } from "lucide-react";
+import { Copy, SaveIcon } from "lucide-react";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -42,7 +42,8 @@ export const EditorPublicKey = ({ workflowId }: { workflowId: string }) => {
   const { data: workflow } = useSuspenseWorkflow(workflowId);
   return (
     <div className="flex items-center text-primary" >
-      {workflow.address}
+      Wallet address : <p className="text-muted-foreground truncate w-40">{ workflow.address }</p>
+      <Button size={"sm"} variant={"outline"} onClick={() => navigator.clipboard.writeText(workflow.address)}><Copy/>Copy</Button>
     </div>
   );
 }

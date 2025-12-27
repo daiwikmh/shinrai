@@ -6,6 +6,7 @@ import { generateText, stepCountIs } from "ai";
 import { allSuiTools } from "./tools";
 import prisma from "@/lib/db";
 import Handlebars from "handlebars";
+import { decrypt } from "@/lib/encryption";
 
 Handlebars.registerHelper("json", (context) => {
   const jsonString = JSON.stringify(context, null, 2);
@@ -17,6 +18,7 @@ Handlebars.registerHelper("json", (context) => {
 type OpenAgentData = {
   variableName?: string;
   prompt?: string;
+  credentialId?: string;
   model?: string;
   enableSuiTools?: boolean;
   systemPrompt?: string;
@@ -46,6 +48,9 @@ export const openAgentExecutor: NodeExecutor<OpenAgentData> = async ({
       if (!data.variableName) {
         throw new NonRetriableError("OpenAgentNode: Variable name is missing");
       }
+      if(!data.credentialId) {
+        throw new NonRetriableError("OpenAgentNode: Credential ID is missing");
+      }
 
       // Get workflow for signer access
       const workflowId = (context as any).workflowId;
@@ -56,9 +61,19 @@ export const openAgentExecutor: NodeExecutor<OpenAgentData> = async ({
       if (!workflow) {
         throw new NonRetriableError("Workflow not found");
       }
-
+      
+      const credential = await prisma.credential.findUnique({
+        where: { 
+          id: data.credentialId
+        },
+      });
+      let decryptedValue = "";
+      if(credential!== null) {
+        decryptedValue = decrypt(credential.value);
+      }
+      
       const openRouter = createOpenRouter({
-        apiKey: process.env.OPENROUTER_API_KEY,
+          apiKey: decryptedValue,
       })
 
       // Prepare tools with workflow signer
@@ -92,9 +107,9 @@ ${data.enableSuiTools ? `The workflow wallet address is: ${workflow.address}` : 
       // Prepare response payload
       const responsePayload = {
         agentResponse: {
-          text: (aiResult.steps.at(-1)?.content.at(-1)?.type === "text") ? aiResult.steps.at(-1)?.content.at(-1)?.text : aiResult.steps.at(-1)?.content.at(-1),
+          text: aiResult.steps.at(-1)?.content.at(-1),
           result: aiResult.steps,
-          model: data.model || "deepseek/deepseek-chat-v3-0324:free",
+          model: data.model || "nex-agi/deepseek-v3.1-nex-n1:free",
         },
       };
 

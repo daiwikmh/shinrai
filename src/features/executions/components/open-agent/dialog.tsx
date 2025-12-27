@@ -147,6 +147,8 @@ export const OpenAgentDialog = ({
     defaultValues: {
       variableName: defaultValues.variableName ?? "",
       prompt: defaultValues.prompt ?? "",
+      model: defaultValues.model ?? "",
+      credentialId: defaultValues.credentialId ?? "",
       enableSuiTools: defaultValues.enableSuiTools ?? false,
       systemPrompt: defaultValues.systemPrompt ?? "",
       maxRetries: defaultValues.maxRetries ?? 5,
@@ -175,6 +177,8 @@ export const OpenAgentDialog = ({
       form.reset({
         variableName: defaultValues.variableName ?? "",
         prompt: defaultValues.prompt ?? "",
+        model: defaultValues.model ?? "",
+        credentialId: defaultValues.credentialId ?? "",
         enableSuiTools: defaultValues.enableSuiTools ?? false,
         systemPrompt: defaultValues.systemPrompt ?? "",
         maxRetries: defaultValues.maxRetries ?? 5,
@@ -235,21 +239,27 @@ export const OpenAgentDialog = ({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {credentials?.map((credential) => (
-                        <SelectItem key={credential.id} value={credential.id}>
-                          <div className="flex items-center gap-2">
-                            <Image
-                              src={"/logo/openrouter.png"}
-                              alt={credential.name}
-                              width={16}
-                              height={16}
-                            />
-                            {credential.name}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                        {Array.isArray(credentials) && credentials.length > 0 ? (
+                          credentials.map((credential: any) => (
+                            <SelectItem key={credential.id} value={credential.id}>
+                              <div className="flex items-center gap-2">
+                                <Image
+                                  src={"/logo/openrouter.png"}
+                                  alt={credential.name}
+                                  width={16}
+                                  height={16}
+                                />
+                                {credential.name}
+                              </div>
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem key="no-credentials" value="" disabled>
+                            No OpenRouter credentials found
+                          </SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
                   <FormDescription>
                     The credential will be accessed for the OpenRouter service.
                   </FormDescription>

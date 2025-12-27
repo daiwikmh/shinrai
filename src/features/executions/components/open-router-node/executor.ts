@@ -5,6 +5,7 @@ import { openRouterNodeChannel } from "@/inngest/channels/openrouter-node";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { generateText } from "ai";
 import prisma from "@/lib/db";
+import { decrypt } from "@/lib/encryption";
 
 Handlebars.registerHelper("json", (context) => {
   const jsonString = JSON.stringify(context, null, 2);
@@ -54,9 +55,14 @@ export const openRouterExecutor: NodeExecutor<OpenRouterData> = async ({
         id: data.credentialId,
       },
     });
+    let decryptedValue = "";
+    if(credential!== null) {
+      decryptedValue = decrypt(credential.value);
+    }
+    
     const openRouter = createOpenRouter({
-      apiKey: credential?.value || "",
-    });
+        apiKey: decryptedValue,
+    })
     const systemPromptTemplate = Handlebars.compile(data.systemPrompt || "");
     const userPromptTemplate = Handlebars.compile(data.userPrompt || "");
     const renderedSystemPrompt = systemPromptTemplate(context);

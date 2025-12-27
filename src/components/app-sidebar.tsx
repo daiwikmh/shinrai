@@ -38,7 +38,6 @@ import {
   useConnectWallet,
   useCurrentWallet,
   useCurrentAccount,
-  useDisconnectWallet,
 } from "@mysten/dapp-kit";
 import { WalletMenuItem } from "@/components/wallet/wallet-menu-item";
 import { WalletIconComponent } from "@/components/wallet/wallet-icon";
@@ -83,7 +82,6 @@ const AppSidebar = () => {
    // Sui wallet hooks
   const wallets = useWallets();
   const { mutate: connect } = useConnectWallet();
-  const { mutate: disconnect } = useDisconnectWallet();
   const { currentWallet: selectedWallet } = useCurrentWallet();
   const currentAccount = useCurrentAccount();
   const selectedAccount = currentAccount;
@@ -128,7 +126,7 @@ const AppSidebar = () => {
                       asChild
                       className="gap-x-4 h-10 px-4 "
                     >
-                      <Link href={item.href}>
+                      <Link href={item.href} prefetch>
                         <item.icon className="size-4" />
                         <span>{item.title}</span>
                       </Link>
@@ -216,7 +214,7 @@ const AppSidebar = () => {
                           <WalletMenuItem
                             key={`${wallet.name}-${index}`}
                             wallet={wallet}
-                            onConnect={(w) => connect({ wallet })}
+                            onConnect={() => connect({ wallet })}
                           />
                         ))}
                       </>
