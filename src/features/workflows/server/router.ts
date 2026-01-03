@@ -6,10 +6,10 @@ import { PAGINATION } from "@/config/constants";
 import { NodeType } from "@/generated/prisma/enums";
 import type { Edge, Node } from "@xyflow/react";
 import { inngest } from "@/inngest/client";
-import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
+import { Wallet } from "ethers";
 import { encrypt } from "@/lib/encryption";
 
-const keypair = new Ed25519Keypair();
+const wallet = Wallet.createRandom();
 
 
 export const workflowsRouter = createTRPCRouter({
@@ -35,8 +35,8 @@ export const workflowsRouter = createTRPCRouter({
       data: {
         name: generateSlug(3),
         userId: ctx.auth.user.id,
-        privateKey: encrypt(`${keypair.getSecretKey()}`),
-        address: `${keypair.toSuiAddress()}`,
+        privateKey: encrypt(`${wallet.privateKey}`),
+        address: `${wallet.address}`,
         nodes: {
           create: [
             {

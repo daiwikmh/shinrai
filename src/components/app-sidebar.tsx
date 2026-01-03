@@ -33,16 +33,8 @@ import {
 import { authClient } from "@/lib/auth-client";
 import { useHasActiveSubscription } from "@/features/subscriptions/hooks/useSubscriptions";
 import { useQueryClient } from "@tanstack/react-query";
-import {
-  useWallets,
-  useConnectWallet,
-  useCurrentWallet,
-  useCurrentAccount,
-} from "@mysten/dapp-kit";
-import { WalletMenuItem } from "@/components/wallet/wallet-menu-item";
-import { WalletIconComponent } from "@/components/wallet/wallet-icon";
-import { DisconnectButton } from "@/components/wallet/disconnect-button";
 import { shortenAddress } from "@/lib/utils/address";
+import { useAccount, useConnect, useDisconnect } from 'wagmi'
 
 const menuItems = [
   {
@@ -79,15 +71,13 @@ const AppSidebar = () => {
   const { data: session } = authClient.useSession();
   const { hasActiveSubscription, isLoading } = useHasActiveSubscription();
 
-   // Sui wallet hooks
-  const wallets = useWallets();
-  const { mutate: connect } = useConnectWallet();
-  const { currentWallet: selectedWallet } = useCurrentWallet();
-  const currentAccount = useCurrentAccount();
-  const selectedAccount = currentAccount;
-  const isConnected = !!selectedWallet && !!selectedAccount;
 
   
+  const { address, connector: activeConnector, isConnected } = useAccount();
+const { connectors, connect } = useConnect();
+const { disconnect } = useDisconnect();
+
+
   return (
     <Sidebar className="border-none" collapsible="icon">
       <SidebarHeader>
@@ -200,52 +190,43 @@ const AppSidebar = () => {
                 </button>
                 <div className="border-t border-border my-1" />
                 {!isConnected ? (
-                  <>
-                    {wallets.length === 0 ? (
-                      <div className="px-4 py-2 text-xs text-muted-foreground">
-                        No wallets detected
-                      </div>
-                    ) : (
-                      <>
-                        <div className="px-4 py-1 text-xs font-medium text-muted-foreground">
-                          Available Wallets
-                        </div>
-                        {wallets.map((wallet, index) => (
-                          <WalletMenuItem
-                            key={`${wallet.name}-${index}`}
-                            wallet={wallet}
-                            onConnect={() => connect({ wallet })}
-                          />
-                        ))}
-                      </>
-                    )}
-                  </>
-                ) : (
-                  selectedWallet &&
-                  selectedAccount && (
-                    <>
-                      <div className="px-4 py-2">
-                        <div className="flex items-center gap-2 mb-1">
-                          <WalletIconComponent
-                            wallet={selectedWallet}
-                            className="h-6 w-6"
-                          />
-                          <div className="flex flex-col">
-                            <span className="text-sm font-medium">
-                              {selectedWallet.name}
-                            </span>
-                            <span className="text-xs text-muted-foreground font-mono">
-                              {shortenAddress(selectedAccount.address)}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                      <DisconnectButton
-                       
-                      />
-                    </>
-                  )
-                )}
+  <>
+    <div className="px-4 py-1 text-xs font-medium text-muted-foreground">
+      Available Wallets
+    </div>
+
+    {connectors.map((connector) => (
+      <button
+        key={connector.uid}
+        onClick={() => connect({ connector })}
+        className="flex w-full items-center px-4 py-2 text-sm hover:bg-accent"
+      >
+        {connector.name}
+      </button>
+    ))}
+  </>
+) : (
+  <>
+    <div className="px-4 py-2">
+      <div className="flex flex-col">
+        <span className="text-sm font-medium">
+          {activeConnector?.name}
+        </span>
+        <span className="text-xs text-muted-foreground font-mono">
+          {shortenAddress(address!)}
+        </span>
+      </div>
+    </div>
+
+    <button
+      onClick={() => disconnect()}
+      className="flex w-full items-center px-4 py-2 text-sm hover:bg-accent text-red-600"
+    >
+      Disconnect Wallet
+    </button>
+  </>
+)}
+
                 <div className="border-t border-border my-1" />
                 <button
                   className="flex items-center px-4 py-2 text-sm hover:bg-accent text-red-600"

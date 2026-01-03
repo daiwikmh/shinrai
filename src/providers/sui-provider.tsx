@@ -1,20 +1,28 @@
 "use client";
 
-import { SuiClientProvider, WalletProvider } from "@mysten/dapp-kit";
-import { getFullnodeUrl } from "@mysten/sui/client";
-import { ReactNode } from "react";
+import { http, WagmiProvider, createConfig } from 'wagmi'
+import { mantleSepoliaTestnet} from 'wagmi/chains'
+import { metaMask } from 'wagmi/connectors'
 
-// Sui network configuration
-const networks = {
-  testnet: { url: getFullnodeUrl("testnet") },
+
+
+export const connectors = [metaMask()];
+
+export const wagmiConfig = createConfig({
+    chains:[mantleSepoliaTestnet],
+    connectors,
+    multiInjectedProviderDiscovery:false,
+    ssr:true,
+    transports: {
+        [mantleSepoliaTestnet.id]: http(),
+    },
+}); 
+
+
+export const AppProvider = ({ children }: { children: React.ReactNode }) => {
+    return (
+        <WagmiProvider config={wagmiConfig}>
+            {children}
+        </WagmiProvider>
+    );
 };
-
-export function SuiProvider({ children }: { children: ReactNode }) {
-  return (
-    <SuiClientProvider networks={networks} defaultNetwork="testnet">
-      <WalletProvider autoConnect>
-        {children}
-      </WalletProvider>
-    </SuiClientProvider>
-  );
-}
